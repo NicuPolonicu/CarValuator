@@ -1,0 +1,239 @@
+Metadata-Version: 2.4
+Name: carvaluator-scraper
+Version: 0.1.0
+Summary: Starter scrapers for used car listings from Autovit and mobile.de
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: playwright>=1.58.0
+Requires-Dist: numpy>=2.0.0
+Requires-Dist: pandas>=2.2.0
+Requires-Dist: scikit-learn>=1.5.0
+Requires-Dist: matplotlib>=3.9.0
+Requires-Dist: seaborn>=0.13.0
+Requires-Dist: fastapi>=0.116.0
+Requires-Dist: uvicorn>=0.35.0
+
+# CarValuator Scraper Starter
+
+This is a thesis-friendly starter project for collecting used-car listing data from:
+
+- `autovit.ro`
+- `mobile.de`
+
+The goal is to build a dataset you can later use for price-fairness analysis:
+
+- fair price
+- suspiciously low price
+- overpriced
+
+## Important note
+
+Both sites can change structure and anti-bot rules over time. On `mobile.de`, direct automated access is already protected more aggressively than `autovit.ro`, so this starter uses two different approaches:
+
+- `autovit.ro`: parse the page's embedded JSON data
+- `mobile.de`: use Playwright and extract rendered listing cards when access is allowed
+
+Always review each website's terms, robots rules, and legal constraints before large-scale scraping.
+
+## Setup
+
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install -e .
+python -m playwright install chromium
+```
+
+## Quick start
+
+Scrape the first 3 Autovit search pages:
+
+```powershell
+car-scraper scrape-search autovit "https://www.autovit.ro/autoturisme" --pages 3 --output data\autovit_search.jsonl
+```
+
+Scrape a larger Autovit dataset:
+
+```powershell
+python -m carvaluator_scraper.cli scrape-search autovit "https://www.autovit.ro/autoturisme" --pages 60 --delay 0.75 --output data\autovit_large.jsonl
+```
+
+Scrape one Autovit listing detail page:
+
+```powershell
+car-scraper scrape-detail autovit "https://www.autovit.ro/autoturisme/anunt/bmw-seria-1-ID7HNlbE.html"
+```
+
+Try a `mobile.de` search page:
+
+```powershell
+car-scraper scrape-search mobilede "https://suchen.mobile.de/auto/bmw-535-2014.html" --pages 1 --headful --browser-channel msedge --output data\mobilede_search.jsonl
+```
+
+Normalize and deduplicate one or more raw JSONL files:
+
+```powershell
+python -m carvaluator_scraper.cli normalize data\autovit_search.jsonl --output data\training_ready.jsonl --report data\training_ready_report.json
+```
+
+If you want the pipeline to also collapse very likely near-duplicates:
+
+```powershell
+python -m carvaluator_scraper.cli normalize data\autovit_search.jsonl data\mobilede_search.jsonl --output data\training_ready.jsonl --drop-fuzzy-duplicates
+```
+
+Export a training CSV from raw JSONL:
+
+```powershell
+python -m carvaluator_scraper.cli export-csv data\autovit_large.jsonl --output data\autovit_large.csv --drop-fuzzy-duplicates --report data\autovit_large_export_report.json
+```
+
+Train baseline regressors and generate plots:
+
+```powershell
+python -m carvaluator_scraper.cli train-models data\autovit_large.csv --output-dir data\model_results
+```
+
+Tune significance-based feature filtering during training:
+
+```powershell
+python -m carvaluator_scraper.cli train-models data\autovit_large.csv --output-dir data\model_results --feature-selection-alpha 0.05 --min-pearson 0.05 --min-cramers-v 0.25
+```
+
+Train on `log1p(price_eur)` instead of raw price:
+
+```powershell
+python -m carvaluator_scraper.cli train-models data\autovit_large.csv --output-dir data\model_results_log --log-target
+```
+
+Predict one Autovit listing with the trained model bundle:
+
+```powershell
+python -m carvaluator_scraper.cli predict-from-link autovit "https://www.autovit.ro/autoturisme/anunt/bmw-seria-1-ID7HNlbE.html" --model-bundle data\model_results_log\best_model.joblib
+```
+
+Use a stricter or looser verdict threshold:
+
+```powershell
+python -m carvaluator_scraper.cli predict-from-link autovit "https://www.autovit.ro/autoturisme/anunt/bmw-seria-1-ID7HNlbE.html" --model-bundle data\model_results_log\best_model.joblib --threshold-percent 10
+```
+
+Start the local API for the future web app:
+
+```powershell
+$env:CARVALUATOR_MODEL_BUNDLE = "data\model_results_log\best_model.joblib"
+carvaluator-api
+```
+
+Or with `uvicorn` directly:
+
+```powershell
+$env:CARVALUATOR_MODEL_BUNDLE = "data\model_results_log\best_model.joblib"
+python -m uvicorn carvaluator_scraper.api:app --reload
+```
+
+Example request:
+
+```powershell
+Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:8000/predict" -ContentType "application/json" -Body '{"site":"autovit","url":"https://www.autovit.ro/autoturisme/anunt/bmw-seria-1-ID7HNlbE.html","threshold_percent":15}'
+```
+
+Useful API routes:
+
+- `GET /`
+- `GET /health`
+- `POST /predict`
+
+The root route now serves a simple browser UI where you can paste an Autovit link and inspect the prediction visually.
+
+## Output schema
+
+Each output row is JSON with fields like:
+
+- `source`
+- `listing_id`
+- `url`
+- `title`
+- `make`
+- `model`
+- `version`
+- `price_value`
+- `currency`
+- `price_indicator`
+- `seller_name`
+- `seller_type`
+- `location_city`
+- `location_region`
+- `year`
+- `first_registration`
+- `mileage_km`
+- `fuel_type`
+- `transmission`
+- `power_hp`
+- `engine_capacity_cm3`
+- `body_type`
+- `description`
+- `raw`
+
+`raw` keeps site-specific source data so you can revisit fields later without re-scraping immediately.
+
+The normalized output adds model-ready fields such as:
+
+- `price_eur`
+- `market_price_label`
+- `fuel_type`
+- `transmission`
+- `seller_type`
+- `dedupe_exact_key`
+- `dedupe_fuzzy_key`
+- `completeness_score`
+
+The training command generates:
+
+- `metrics.csv`
+- `training_report.json`
+- `feature_significance.csv`
+- `best_model.joblib`
+- held-out prediction CSV files for each model
+- `price_distribution.png`
+- `price_vs_mileage.png`
+- `correlation_heatmap.png`
+- `actual_vs_predicted.png`
+
+The `predict-from-link` command returns:
+
+- the detected listing price
+- the model's predicted fair price
+- the percentage delta
+- a verdict: `fair`, `too_low_suspicious`, or `too_high`
+- the normalized features sent into the model
+
+## mobile.de note
+
+`mobile.de` now uses a more realistic Edge browser profile in the scraper, but the site still has active anti-bot protection and may block this environment.
+
+If that happens, try:
+
+- `--headful`
+- `--browser-channel msedge`
+- a normal residential connection
+- rerunning from your own machine instead of a cloud or shared environment
+
+## How this helps your thesis
+
+A good early pipeline is:
+
+1. Scrape listings into JSONL.
+2. Normalize brand, model, year, mileage, fuel, gearbox, power, price.
+3. Remove duplicates.
+4. Train a regression model to predict expected price.
+5. Convert the prediction error into labels like fair / too low / too high.
+
+The current project now covers:
+
+1. scraping
+2. normalization and deduplication
+3. CSV export for model training
+4. baseline price-regression training
+5. single-link price verdict inference for Autovit
+6. a small FastAPI backend for frontend integration

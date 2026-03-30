@@ -1,0 +1,3 @@
+[console_scripts]
+car-scraper = carvaluator_scraper.cli:main
+carvaluator-api = carvaluator_scraper.api:main

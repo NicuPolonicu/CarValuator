@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: carvaluator
+    runtime: python
+    plan: free
+    buildCommand: pip install -e .
+    startCommand: carvaluator-api
+    healthCheckPath: /health
+    envVars:
+      - key: CARVALUATOR_MODEL_BUNDLE
+        value: data/model_results_log/best_model.joblib

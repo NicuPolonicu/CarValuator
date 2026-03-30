@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CarValuator</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <div class="ambient ambient-left"></div>
+    <div class="ambient ambient-right"></div>
+
+    <main class="layout">
+      <section class="hero">
+        <p class="eyebrow">Thesis Price Analysis Prototype</p>
+        <h1>Paste an Autovit listing and get a market verdict in seconds.</h1>
+        <p class="hero-copy">
+          The current baseline model compares the ad's listed price against the predicted fair market value
+          from your training data, then flags it as fair, suspiciously low, or overpriced.
+        </p>
+
+        <div class="hero-stats">
+          <article class="stat-card">
+            <span class="stat-label">Model</span>
+            <strong id="modelName">Checking...</strong>
+          </article>
+          <article class="stat-card">
+            <span class="stat-label">Supported Site</span>
+            <strong>Autovit</strong>
+          </article>
+          <article class="stat-card">
+            <span class="stat-label">API Status</span>
+            <strong id="apiStatus">Connecting...</strong>
+          </article>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <div class="panel input-panel">
+          <div class="panel-head">
+            <h2>Score a Listing</h2>
+            <p>Use the same endpoint your future frontend will call.</p>
+          </div>
+
+          <form id="predictForm" class="predict-form">
+            <label class="field">
+              <span>Autovit URL</span>
+              <input
+                id="urlInput"
+                name="url"
+                type="url"
+                required
+                placeholder="https://www.autovit.ro/autoturisme/anunt/..."
+                autocomplete="off"
+              >
+            </label>
+
+            <div class="field-row">
+              <label class="field">
+                <span>Verdict Threshold (%)</span>
+                <input id="thresholdInput" name="threshold" type="number" min="1" max="100" step="1" value="15">
+              </label>
+
+              <button id="submitButton" class="primary-button" type="submit">
+                <span class="button-text">Analyze Price</span>
+              </button>
+            </div>
+          </form>
+
+          <div class="actions">
+            <button id="exampleButton" class="secondary-button" type="button">Use Example Listing</button>
+          </div>
+
+          <p id="formMessage" class="form-message" aria-live="polite"></p>
+        </div>
+
+        <div id="resultPanel" class="panel result-panel is-empty">
+          <div class="empty-state">
+            <p class="empty-kicker">Result Preview</p>
+            <h2>Your valuation will appear here.</h2>
+            <p>
+              We will show the scraped listing details, the predicted fair price, the difference in percent,
+              and the final verdict class that you can reuse in the web app.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
