@@ -25,7 +25,11 @@ def build_parser() -> argparse.ArgumentParser:
     search_parser.add_argument("--delay", type=float, default=1.5, help="Delay between pages")
     search_parser.add_argument("--headful", action="store_true", help="Run browser with UI for mobile.de")
     search_parser.add_argument("--output", type=Path, help="Write rows as JSONL")
-    search_parser.add_argument("--browser-channel", default="msedge", help="Browser channel for mobile.de")
+    search_parser.add_argument(
+        "--browser-channel",
+        default="chromium",
+        help="Browser channel for mobile.de (portable default: chromium)",
+    )
 
     detail_parser = subparsers.add_parser("scrape-detail", help="Scrape one listing detail page.")
     detail_parser.add_argument("site", choices=["autovit"])

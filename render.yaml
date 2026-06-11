@@ -1,19 +1,19 @@
 services:
   - type: web
     name: carvaluator
-    runtime: python
+    runtime: docker
     plan: free
     region: frankfurt
-    buildCommand: pip install --upgrade pip && pip install -e .
-    startCommand: python -m carvaluator_scraper.api
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     healthCheckPath: /health
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.9
       - key: CARVALUATOR_MODEL_BUNDLE
         value: deploy_artifacts/model_results/best_model.joblib
       - key: CARVALUATOR_SIMILARITY_CSV
         value: deploy_artifacts/datasets/combined_reader_20260606.csv
+      - key: CARVALUATOR_BROWSER_CHANNEL
+        value: chromium
       - key: CARVALUATOR_AUTH_DB
         value: /tmp/carvaluator_users.db
       - key: CARVALUATOR_COOKIE_SECURE

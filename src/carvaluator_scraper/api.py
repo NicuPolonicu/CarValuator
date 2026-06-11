@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from importlib.metadata import version as package_version
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
@@ -141,6 +142,10 @@ def create_app() -> FastAPI:
             "model_bundle_exists": model_bundle.exists(),
             "similarity_dataset": str(similarity_csv),
             "similarity_dataset_exists": similarity_csv.exists(),
+            "runtime_versions": {
+                "scikit_learn": package_version("scikit-learn"),
+                "playwright": package_version("playwright"),
+            },
             "model_artifacts": {
                 "model_performance": (model_artifact_dir / "model_performance.png").exists(),
                 "actual_vs_predicted": (model_artifact_dir / "actual_vs_predicted.png").exists(),

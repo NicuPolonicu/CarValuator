@@ -26,7 +26,7 @@ param(
     [int]$MobileDePages = 5,
     [double]$MobileDeDelay = 1.0,
     [switch]$HeadfulMobileDe,
-    [string]$BrowserChannel = "msedge",
+    [string]$BrowserChannel = "chromium",
 
     [string[]]$ExtraJsonl = @(),
     [string]$RunName = (Get-Date -Format "yyyyMMdd_HHmmss"),

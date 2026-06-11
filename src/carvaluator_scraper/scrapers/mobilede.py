@@ -56,7 +56,7 @@ class MobileDeScraper:
         self,
         headless: bool = True,
         timeout_ms: int = 60_000,
-        channel: str = "msedge",
+        channel: str | None = None,
     ) -> None:
         self.headless = headless
         self.timeout_ms = timeout_ms
@@ -66,8 +66,7 @@ class MobileDeScraper:
         try:
             return self._scrape_search_api(url, pages=pages, delay_seconds=delay_seconds)
         except MobileDeBlockedError:
-            if self.headless:
-                raise
+            pass
         except (json.JSONDecodeError, OSError, URLError):
             pass
 
@@ -198,10 +197,15 @@ class MobileDeScraper:
         return url
 
     def _open_browser(self, playwright: Any) -> tuple[Any, Any, Any]:
+        launch_options: dict[str, Any] = {
+            "headless": self.headless,
+            "args": ["--disable-blink-features=AutomationControlled"],
+        }
+        if self.channel and self.channel.casefold() not in {"chromium", "default"}:
+            launch_options["channel"] = self.channel
+
         browser = playwright.chromium.launch(
-            channel=self.channel,
-            headless=self.headless,
-            args=["--disable-blink-features=AutomationControlled"],
+            **launch_options,
         )
         context = browser.new_context(
             locale="de-DE",

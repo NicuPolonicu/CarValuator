@@ -14,6 +14,7 @@ os.environ.setdefault("LOKY_MAX_CPU_COUNT", "1")
 import joblib
 import numpy as np
 import pandas as pd
+from playwright.sync_api import Error as PlaywrightError
 
 from carvaluator_scraper.models import CarListing
 from carvaluator_scraper.normalize import NormalizedListing, normalize_record, normalize_url
@@ -50,7 +51,13 @@ class PricePrediction:
 
 
 def load_model_bundle(path: Path) -> dict[str, Any]:
-    bundle = joblib.load(path)
+    try:
+        bundle = joblib.load(path)
+    except (AttributeError, ModuleNotFoundError) as exc:
+        raise RuntimeError(
+            "Modelul salvat nu este compatibil cu bibliotecile ML instalate. "
+            "Reinstaleaza dependentele exacte din pyproject.toml sau regenereaza artefactul de deployment."
+        ) from exc
     force_single_threaded_prediction(bundle.get("pipeline"))
     for pipeline in (bundle.get("all_pipelines") or {}).values():
         force_single_threaded_prediction(pipeline)
@@ -213,10 +220,10 @@ def extract_mobilede_listing_id(url: str) -> str | None:
 
 
 def scrape_mobilede_listing_from_detail(*, url: str) -> NormalizedListing | None:
-    scraper = MobileDeScraper()
+    scraper = MobileDeScraper(channel=os.getenv("CARVALUATOR_BROWSER_CHANNEL", "chromium"))
     try:
         listing = scraper.scrape_detail(url)
-    except (MobileDeBlockedError, OSError, ValueError):
+    except (MobileDeBlockedError, OSError, PlaywrightError, ValueError):
         return None
     return normalize_record(listing.to_dict())
 
@@ -226,10 +233,10 @@ def scrape_mobilede_listing_from_search(*, listing_id: str | None) -> Normalized
         return None
     pages = int(os.getenv("CARVALUATOR_MOBILEDE_LOOKUP_PAGES", "5"))
     search_url = os.getenv("CARVALUATOR_MOBILEDE_LOOKUP_URL", DEFAULT_MOBILEDE_LOOKUP_URL)
-    scraper = MobileDeScraper()
+    scraper = MobileDeScraper(channel=os.getenv("CARVALUATOR_BROWSER_CHANNEL", "chromium"))
     try:
         rows = scraper.scrape_search(search_url, pages=pages, delay_seconds=0.5)
-    except MobileDeBlockedError:
+    except (MobileDeBlockedError, OSError, PlaywrightError, ValueError):
         return None
     for row in rows:
         if row.listing_id == listing_id:

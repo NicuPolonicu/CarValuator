@@ -251,7 +251,7 @@ Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:8001/predict" -ContentType
 
 ## 8. Deploy On Render
 
-The repo includes a `render.yaml` Blueprint for deploying the FastAPI app as one public Render web service.
+The repo includes a `render.yaml` Blueprint and a `Dockerfile` for deploying the FastAPI app as one public Render web service. Docker keeps the ML runtime reproducible and installs the Chromium browser required by the mobile.de fallback.
 
 The repository includes a prepared `deploy_artifacts` folder, so Render does not need access to the ignored local `data` directory. Regenerate it from the current combined dataset and model with:
 
@@ -270,8 +270,8 @@ The cloud bundle keeps SVR, Ridge, KNN, and Gradient Boosting. The UI still show
 Then commit and push these deployment files to GitHub:
 
 ```powershell
-git add pyproject.toml render.yaml runtime.txt README.md src scripts deploy_artifacts
-git commit -m "Prepare CarValuator Render demo"
+git add .dockerignore Dockerfile pyproject.toml render.yaml README.md src scripts deploy_artifacts
+git commit -m "Fix Render ML and mobile.de runtime"
 git push origin main
 ```
 
@@ -289,12 +289,14 @@ The default Render config uses:
 ```text
 Region: Frankfurt
 Plan: Free
-Build command: pip install --upgrade pip && pip install -e .
-Start command: python -m carvaluator_scraper.api
+Runtime: Docker
+Dockerfile: ./Dockerfile
 Health check: /health
 ```
 
-The app already binds to `0.0.0.0` and reads Render's `PORT` environment variable, so it can receive public traffic.
+The Docker build pins the same `scikit-learn`, NumPy, SciPy, pandas, and joblib versions used to create the deployed model bundle. It also installs Playwright Chromium instead of assuming that Microsoft Edge exists on the Linux server. The app binds to `0.0.0.0` and reads Render's `PORT` environment variable.
+
+After changing runtime dependencies, use `Manual Deploy` and `Clear build cache & deploy` in Render. Once live, open `/health` and verify that `runtime_versions.scikit_learn` is `1.8.0` and `runtime_versions.playwright` is `1.58.0`.
 
 Important demo limitations:
 
