@@ -1,0 +1,79 @@
+\chapter{Studii de caz și validare funcțională}
+\label{chapter:case-studies}
+
+\section{Rolul studiilor de caz}
+\label{sec:case-role}
+
+Evaluarea numerică a modelelor este necesară, dar nu este suficientă pentru un proiect care trebuie folosit printr-o interfață web. Un model poate avea scoruri bune pe setul de test, dar aplicația poate eșua dacă nu extrage corect linkul, dacă afișează imaginea greșită, dacă pierde sesiunea utilizatorului sau dacă istoricul devine greu de folosit. Din acest motiv, proiectul a fost validat și prin scenarii funcționale.
+
+Studiile de caz urmăresc comportamentul complet al aplicației, de la introducerea linkului până la salvarea rezultatului în cont. Ele nu sunt prezentate ca benchmark statistic, ci ca verificare a experienței reale. Pentru un cumpărător, aplicația contează doar dacă răspunde rapid, afișează informații inteligibile și nu ascunde situațiile în care predicția este incertă.
+
+\section{Scenariu Autovit cu mașină comună}
+\label{sec:case-autovit-common}
+
+Primul scenariu folosește un anunț \autovit\ pentru o mașină comună, de exemplu un model compact sau de clasă medie, cu an și kilometraj tipice pentru piața românească. În acest caz, aplicația are cele mai bune șanse să producă o estimare utilă, deoarece setul de antrenare conține multe exemple asemănătoare.
+
+Fluxul observat este următorul. Utilizatorul se autentifică, introduce linkul, alege metoda implicită \texttt{inverse\_mae\_with\_agreement} și păstrează toleranța de 15\%. Interfața afișează animația de încărcare, backend-ul extrage pagina, normalizează câmpurile, încarcă modelul și returnează rezultatul. Cardul rezultatului conține titlul, prețul publicat, prețul estimat, verdictul și diferența procentuală.
+
+Pentru mașini comune, lista de anunțuri similare este de obicei relevantă. Aplicația găsește mașini cu aceeași marcă și același model, apoi prioritizează valori apropiate pentru an și kilometraj. Acest lucru este important deoarece utilizatorul poate verifica vizual dacă verdictul este plauzibil. Dacă prețul estimat este 12000 EUR, iar anunțurile similare sunt între 11000 și 13000 EUR, verdictul „preț corect” este ușor de înțeles.
+
+În acest scenariu, toate componentele au rol vizibil. Modelul produce estimarea, dar sugestiile similare oferă context. Imaginea anunțului confirmă că linkul a fost interpretat corect. Istoricul salvează analiza, astfel încât utilizatorul poate compara ulterior mai multe mașini.
+
+\section{Scenariu Autovit cu mașină premium}
+\label{sec:case-autovit-premium}
+
+Al doilea scenariu folosește o mașină premium sau foarte scumpă. Acesta este un caz mai dificil deoarece distribuția prețurilor este asimetrică, iar exemplele premium sunt mai puține. În graficele de evaluare se observă că unele mașini scumpe sunt subestimate. Cauza nu este doar modelul, ci și faptul că prețul premium depinde de detalii pe care scraperul nu le captează complet: pachet de dotări, istoric de service, ediție limitată, stare estetică, garanție sau raritate.
+
+Pentru acest scenariu, afișarea predicțiilor pe model este esențială. Dacă SVR, Ridge și ansamblul de votare sunt apropiate, iar arborii sunt mai departe, utilizatorul poate avea o încredere mai mare în estimarea centrală. Dacă predicțiile diferă mult, aplicația nu ar trebui interpretată ca verdict definitiv. Din acest motiv, strategia \texttt{inverse\_mae\_with\_agreement} este utilă: modelele care se abat mult de la mediana predicțiilor primesc o pondere mai mică.
+
+În cazul mașinilor premium, toleranța de 15\% poate însemna o sumă mare. Utilizatorul poate reduce pragul la 10\% dacă dorește o evaluare mai strictă. Această opțiune a fost adăugată tocmai pentru a evita un verdict rigid. O aplicație de evaluare trebuie să respecte faptul că noțiunea de „preț corect” depinde de context.
+
+\section{Scenariu mobile.de}
+\label{sec:case-mobilede}
+
+Scenariul \mobilede\ validează integrarea cea mai fragilă. Utilizatorul introduce un link localizat, de forma \texttt{/ro/vehicule/detalii.html?id=...}. Backend-ul trebuie să extragă identificatorul anunțului și să parseze pagina de detaliu. În primele iterații, astfel de linkuri nu funcționau deoarece parserul se aștepta la forme diferite ale URL-ului.
+
+După extindere, aplicația poate trata linkuri de detaliu \mobilede, însă succesul depinde de răspunsul site-ului. Dacă pagina returnează o eroare de acces, aplicația afișează o eroare de predicție. Dacă pagina este disponibilă, câmpurile sunt extrase și normalizate similar cu \autovit.
+
+O problemă observată în acest scenariu a fost imaginea greșită. Pentru anumite anunțuri, prima imagine accesibilă era un banner de dealer sau o fotografie generală de showroom. În urma testării manuale, parserul a fost ajustat pentru a prefera imaginile din galeria vehiculului. Această corecție este relevantă pentru calitatea aplicației deoarece imaginea este un semnal vizual puternic: dacă imaginea este greșită, se poate crea impresia că întregul anunț a fost analizat greșit.
+
+\section{Scenariu de istoric pe cont}
+\label{sec:case-history}
+
+Autentificarea și istoricul au fost adăugate deoarece utilizatorii testează mai multe anunțuri într-o sesiune. Fără istoric, fiecare analiză dispare după refresh. Cu istoric, aplicația devine un instrument de lucru: utilizatorul poate compara oferte, poate reveni la o analiză și poate elimina testele irelevante.
+
+Validarea acestui scenariu urmărește trei operații. Prima este crearea contului și autentificarea prin cookie HTTP-only. A doua este salvarea automată a unei predicții reușite. A treia este ștergerea unui element individual sau a întregului istoric. Această ultimă funcționalitate păstrează aplicația utilizabilă atunci când sunt comparate multe anunțuri într-o singură sesiune.
+
+Din perspectivă de proiectare, istoricul este legat strict de contul curent. Un utilizator nu poate șterge sau vedea analizele altui utilizator. Această regulă este verificată în backend prin dependența de autentificare înainte de accesarea rutelor \texttt{/history}.
+
+\section{Scenariu de deployment}
+\label{sec:case-deployment}
+
+Deployment-ul a fost pregătit pentru Render. Scenariul de validare pornește de la o problemă practică: folderul \texttt{data} este ignorat de Git, dar aplicația are nevoie de model și CSV pentru a funcționa în cloud. Soluția a fost introducerea folderului \texttt{deploy\_artifacts}, care conține un model comprimat, datasetul de similaritate și graficele de performanță.
+
+Acest scenariu verifică ruta \texttt{/health}. Dacă modelul și CSV-ul există, ruta întoarce status „ok” și indică faptul că graficele pot fi servite. În testarea locală cu variabilele Render, ruta a confirmat existența modelului, a datasetului și a graficelor principale. Această verificare este importantă deoarece multe erori de deployment nu apar în cod, ci în calea fișierelor sau în variabilele de mediu.
+
+O limitare a deployment-ului demo este baza de date de autentificare. Dacă este plasată în \texttt{/tmp}, conturile pot fi pierdute la restart. Pentru un serviciu public stabil, este necesar un disc persistent sau o bază de date externă. Lucrarea marchează această diferență explicit, pentru ca demo-ul și producția să nu fie confundate.
+
+\section{Validarea mesajelor de eroare}
+\label{sec:case-errors}
+
+O aplicație care depinde de scraping trebuie să trateze erorile ca parte normală a fluxului. Linkurile pot expira, site-urile pot bloca cererea, modelul poate lipsi, iar datasetul de similaritate poate să nu fie configurat. În loc să se blocheze, aplicația întoarce mesaje explicite.
+
+Pentru utilizator, cel mai frecvent mesaj este eșecul predicției din cauza conexiunii sau a site-ului țintă. Într-un astfel de caz, mesajul trebuie să indice problema fără a expune detalii inutile. Pentru dezvoltator, ruta \texttt{/health} ajută la diagnosticarea rapidă a configurării.
+
+Această abordare este importantă pentru un proiect real. Un sistem ML integrat într-o aplicație web nu este evaluat doar prin scoruri, ci și prin robustețe operațională. Dacă aplicația explică de ce nu poate analiza un link, utilizatorul are mai multă încredere decât într-o aplicație care eșuează tăcut.
+
+\section{Observații din testare}
+\label{sec:case-observations}
+
+Testarea manuală a scos la iveală probleme care nu erau evidente din metricile offline. Prima problemă a fost uniformizarea predicțiilor unor modele. A doua a fost imaginea greșită pe \mobilede. A treia a fost aglomerarea istoricului. A patra a fost nevoia ca utilizatorul să aleagă metoda de combinare și toleranța.
+
+Aceste observații arată valoarea iterațiilor cu interfața reală. Pipeline-ul ML poate părea complet într-un notebook, dar aplicația finală expune fricțiuni pe care doar utilizarea efectivă le dezvăluie. În proiectul \project, fiecare observație a dus la o modificare concretă: log-preț, medie ponderată, filtrare de imagini, ștergere de istoric și controale în interfață.
+
+\section{Concluziile studiilor de caz}
+\label{sec:case-conclusions}
+
+Studiile de caz confirmă că aplicația este funcțională pentru fluxul principal \autovit\ și utilizabilă pentru anumite linkuri \mobilede, cu limite clare. Ele confirmă și importanța separării între evaluarea modelului și evaluarea aplicației. Un scor bun nu garantează o experiență bună, iar o interfață bună nu compensează date incomplete sau blocaje ale sursei externe.
+
+Prin aceste scenarii, proiectul a fost ajustat pentru a fi mai aproape de o aplicație reală. Nu este doar un script care prezice prețuri, ci un sistem cu utilizatori, istoric, erori, grafice, deployment și decizii explicite de proiectare.

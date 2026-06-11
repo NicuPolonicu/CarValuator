@@ -1,0 +1,158 @@
+\chapter{Modelare și selecția caracteristicilor}
+\label{chapter:models}
+
+\section{Caracteristici derivate}
+\label{sec:models-features}
+
+Modelele nu folosesc doar câmpurile extrase direct din anunțuri. Pipeline-ul construiește și caracteristici derivate care surprind relații mai utile pentru predicție. Vârsta vehiculului este calculată ca diferență între anul curent și anul mașinii. Kilometrajul pe an împarte kilometrajul total la vârsta vehiculului, evitând interpretarea identică a două mașini cu același kilometraj, dar cu vârste diferite. Raportul cai putere pe litru este calculat din putere și capacitate cilindrică, oferind un indicator simplu al performanței specifice.
+
+O caracteristică importantă este \texttt{make\_model}, combinația dintre marcă și model. Aceasta ajută modelele să învețe că prețul nu depinde independent de marcă și model, ci de perechea lor. De exemplu, marca BMW are mai multe modele cu prețuri foarte diferite, iar modelul Seria 3 are altă distribuție decât X5. O reprezentare combinată reduce ambiguitatea.
+
+\begin{table}[htb]
+    \centering
+    \caption{Exemple de caracteristici derivate}
+    \label{tab:derived-features}
+    \begin{tabular}{lp{8cm}}
+        \toprule
+        Caracteristică & Interpretare \\
+        \midrule
+        \texttt{vehicle\_age} & Vechimea mașinii în ani \\
+        \texttt{mileage\_per\_year} & Ritmul de utilizare anuală \\
+        \texttt{hp\_per\_liter} & Putere raportată la capacitatea cilindrică \\
+        \texttt{make\_model} & Segment comercial aproximat prin marcă și model \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Selecția statistică}
+\label{sec:models-selection}
+
+Selecția caracteristicilor are rolul de a reduce zgomotul și de a elimina coloanele slab reprezentate. Pentru caracteristicile numerice, pipeline-ul calculează corelația Pearson față de prețul logaritmic. Pentru caracteristicile categorice, prețul este împărțit în intervale, iar asocierea dintre categorie și intervalul de preț este testată prin chi-pătrat. Mărimea efectului este exprimată printr-o valoare de tip Cramér V.
+
+În configurația finală, pragurile au fost: \(\alpha = 0.05\), corelație Pearson minimă absolută \(0.05\) pentru numerice și Cramér V minim \(0.25\) pentru categorice. Aceste praguri sunt suficient de permisive pentru a păstra semnale slabe, dar elimină câmpuri cu puține valori sau cu asociere insuficientă.
+
+\labelindexref{Figura}{fig:feature-significance} prezintă cele mai relevante caracteristici. Printre cele păstrate se află versiunea, puterea, anul, vârsta vehiculului, combinația marcă-model, kilometrajul, capacitatea cilindrică, orașul și anul primei înmatriculări.
+
+\fig[width=0.88\textwidth]{src/img/carvaluator/feature_significance_top.png}{fig:feature-significance}{Caracteristici relevante după testele statistice}
+
+\begin{table}[htb]
+    \centering
+    \caption{Caracteristici selectate în antrenarea finală}
+    \label{tab:selected-features}
+    \begin{tabular}{@{}p{3.2cm}p{9.5cm}@{}}
+        \toprule
+        Tip & Caracteristici \\
+        \midrule
+        Numerice & \texttt{year}, \texttt{vehicle\_age}, \texttt{mileage\_km}, \texttt{power\_hp}, \texttt{engine\_capacity\_cm3} \\
+        Numerice derivate & \texttt{mileage\_per\_year}, \texttt{hp\_per\_liter} \\
+        Categorice & \texttt{make}, \texttt{model}, \texttt{make\_model}, \texttt{version}, \texttt{seller\_type}, \texttt{location\_city} \\
+        Înmatriculare & \texttt{first\_registration\_year} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Unele câmpuri au fost eliminate deși pot fi importante în realitate. \texttt{transmission} și \texttt{body\_type} au fost eliminate în setul combinat deoarece erau completate pentru prea puține rânduri. \texttt{fuel\_type} a avut semnificație statistică, dar efectul a fost sub pragul ales. Această situație indică o limitare a datelor, nu neapărat o lipsă de relevanță a combustibilului.
+
+\section{Preprocesare}
+\label{sec:models-preprocessing}
+
+Pipeline-ul folosește transformări diferite pentru variabile numerice și categorice. Variabilele numerice sunt imputate atunci când lipsesc și scalate pentru modelele sensibile la distanță, precum SVR și KNN. Variabilele categorice sunt imputate cu o valoare specială pentru lipsă și transformate prin one-hot encoding.
+
+Această separare este importantă deoarece modelele au cerințe diferite. Arborii de decizie sunt mai puțin sensibili la scalare, dar SVR și KNN pot fi dominate de variabile cu valori mari, de exemplu kilometrajul. Prin standardizare, fiecare variabilă numerică are o contribuție comparabilă în spațiul de intrare.
+
+\section{Modele candidate}
+\label{sec:models-candidates}
+
+Au fost antrenate șapte modele:
+
+\begin{itemize}
+    \item \texttt{svr\_rbf}, un SVR cu kernel RBF;
+    \item \texttt{ridge}, o regresie liniară regularizată;
+    \item \texttt{knn\_distance}, KNN cu ponderare după distanță;
+    \item \texttt{random\_forest}, ansamblu Random Forest;
+    \item \texttt{extra\_trees}, ansamblu Extra Trees;
+    \item \texttt{gradient\_boosting}, boosting pe arbori;
+    \item \texttt{voting\_ensemble}, ansamblu care combină mai multe modele.
+\end{itemize}
+
+Implementarea este realizată cu scikit-learn \cite{pedregosa2011scikit}. Fiecare model este inclus într-un pipeline care conține preprocesarea corespunzătoare. Această alegere reduce riscul de inconsistență între antrenare și predicție, deoarece aceeași transformare este aplicată și datelor din anunțurile live.
+
+\section{Funcționarea modelelor folosite}
+\label{sec:models-how-they-work}
+
+Modelele au fost alese astfel încât să acopere familii diferite de regresie: modele liniare, modele bazate pe vecini, modele cu vectori suport și ansambluri de arbori. \labelindexref{Tabelul}{tab:model-methods} sintetizează ideea fiecărui algoritm și modul în care se interpretează în contextul evaluării unui anunț auto.
+
+\begin{table}[htb]
+    \centering
+    \caption{Modul de funcționare al modelelor utilizate}
+    \label{tab:model-methods}
+    \begin{tabular}{@{}p{2.4cm}p{5.8cm}p{3.8cm}@{}}
+        \toprule
+        Model & Idee de funcționare & Exemplu în proiect \\
+        \midrule
+        SVR RBF & Caută o funcție neliniară care păstrează erorile mici într-un interval de toleranță și penalizează abaterile mari. Kernelul RBF permite relații neliniare între an, kilometraj, putere și preț. & Două mașini cu același an pot primi estimări diferite dacă distanța combinată față de exemplele de antrenare diferă mult. \\
+        Ridge & Este o regresie liniară cu regularizare. Coeficienții sunt micșorați pentru a evita supraînvățarea pe multe coloane one-hot. & O marcă sau o versiune poate avea un coeficient pozitiv, iar kilometrajul poate avea un coeficient negativ. \\
+        KNN & Estimează prețul ca medie ponderată a celor mai apropiate anunțuri din setul de antrenare. Vecinii mai apropiați primesc pondere mai mare. & Un Golf din 2018 este comparat cu alte Golf-uri apropiate ca an, kilometraj și putere. \\
+        Random Forest & Construiește mai mulți arbori de decizie pe eșantioane diferite și mediază predicțiile lor. & Un arbore poate învăța reguli pentru mașini diesel compacte, altul pentru mașini premium. \\
+        Extra Trees & Seamănă cu Random Forest, dar folosește praguri de împărțire mai randomizate, crescând diversitatea arborilor. & Ajută când datele conțin multe interacțiuni și zgomot, dar poate fi mai puțin stabil pentru zone rare. \\
+        Gradient Boosting & Construiește arbori secvențial. Fiecare arbore nou încearcă să corecteze erorile rămase de la ansamblul anterior. & Dacă modelul subestimează sistematic mașinile noi, arborii următori pot corecta parțial această zonă. \\
+        Voting Ensemble & Combină predicțiile mai multor modele pentru a reduce dependența de o singură ipoteză. & Predicția finală folosește o medie ponderată pe baza performanței și, opțional, a acordului dintre modele. \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+La nivel de implementare, toate modelele urmează același flux general:
+
+\begin{lstlisting}[language=Python,caption={Pseudocod pentru antrenarea modelelor},label={lst:model-training-pseudo}]
+date = incarca_csv()
+X, y = separa_caracteristici_si_pret(date)
+y_log = log1p(y)
+
+pentru fiecare model candidat:
+    pipeline = preprocesare + model
+    pipeline.fit(X_train, y_log_train)
+    predictii = expm1(pipeline.predict(X_test))
+    calculeaza_RMSE_MAE_R2(predictii, y_test)
+
+salveaza_modelul_cu_performanta_cea_mai_buna()
+salveaza_metrici_grafice_si_predictii_individuale()
+\end{lstlisting}
+
+Această structură comună a permis compararea corectă a modelelor. Diferența dintre ele nu stă în datele primite sau în transformările aplicate, ci în modul în care fiecare model învață relația dintre caracteristici și preț.
+
+\section{Antrenarea pe log-preț}
+\label{sec:models-log-training}
+
+Primele experimente au arătat că modelele pot produce predicții prea apropiate între anunțuri diferite, mai ales când distribuția țintei este dezechilibrată. Pentru a corecta parțial problema, modelele finale au fost antrenate pe \(log1p(price)\). Această transformare reduce presiunea exemplelor foarte scumpe și face ca erorile relative să conteze mai echilibrat.
+
+În aplicație, predicțiile sunt inversate automat în EUR înainte de afișare. Utilizatorul nu vede valorile logaritmice. El vede prețul estimat, prețul anunțului și diferența procentuală.
+
+\section{Predicția finală prin medie ponderată}
+\label{sec:models-weighted}
+
+Aplicația nu este limitată la un singur model. Pentru fiecare anunț, sunt calculate predicții pentru modelele salvate în bundle. Predicția finală afișată utilizatorului este o medie ponderată:
+
+\[
+    \hat{p}_{final} = \frac{\sum_i w_i \hat{p}_i}{\sum_i w_i}
+\]
+
+Prima strategie disponibilă, \texttt{inverse\_mae}, folosește ponderi invers proporționale cu MAE-ul modelului:
+
+\[
+    w_i = \frac{1}{MAE_i + \varepsilon}
+\]
+
+A doua strategie, \texttt{inverse\_mae\_with\_agreement}, adaugă o penalizare pentru modelele care se abat mult de la mediana predicțiilor:
+
+\[
+    w_i = \frac{1}{MAE_i + \varepsilon} \cdot exp\left(-\frac{|\hat{p}_i - median(\hat{p})|}{s}\right)
+\]
+
+Această a doua strategie a fost introdusă deoarece un model poate avea performanță bună global, dar poate produce o predicție foarte diferită pentru un anunț atipic. Penalizarea de acord nu elimină modelul, dar îi reduce influența în predicția finală.
+
+\section{Verdictul}
+\label{sec:models-verdict}
+
+Verdictul compară prețul din anunț cu prețul estimat. Dacă diferența procentuală absolută este sub pragul ales de utilizator, anunțul este considerat corect. Dacă prețul publicat este mult sub estimare, verdictul devine preț prea mic, cu interpretare de ofertă potențial suspectă. Dacă prețul publicat este mult peste estimare, verdictul devine preț prea mare.
+
+Pragul implicit este 15\%, dar interfața permite modificarea lui. Această opțiune este necesară deoarece toleranța diferă în funcție de buget și categorie. Pentru o mașină ieftină, 10\% poate fi o diferență importantă. Pentru o mașină premium, aceeași toleranță relativă poate corespunde unei sume mari, dar poate fi încă acceptabilă în negociere.

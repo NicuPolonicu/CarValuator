@@ -1,0 +1,80 @@
+\chapter{Analiza și specificarea cerințelor}
+\label{chapter:requirements}
+
+\section{Profilul utilizatorilor}
+\label{sec:req-users}
+
+Aplicația \project\ este gândită pentru cumpărători care caută autoturisme second-hand online și au nevoie de o verificare rapidă a prețului. Utilizatorul tipic nu este expert auto, dar poate citi datele de bază ale unui anunț: marcă, model, an, kilometraj, motorizare și preț. Înainte de o vizionare fizică, acesta vrea să știe dacă oferta este rezonabilă în raport cu piața sau dacă merită tratată cu prudență.
+
+Pentru definirea cerințelor a fost folosit un chestionar pilot realizat în Google Forms, adresat în principal unor studenți de la Facultatea de Automatică și Calculatoare care iau în calcul cumpărarea unei mașini second-hand. Eșantionul nu a fost tratat ca studiu statistic reprezentativ pentru întreaga piață, ci ca metodă exploratorie de produs. Scopul a fost identificarea întrebărilor reale pe care le are un cumpărător la începutul procesului de selecție.
+
+Întrebările urmărite în formular au fost:
+
+\begin{itemize}
+    \item ce site-uri sunt folosite cel mai des pentru căutarea unei mașini second-hand;
+    \item cât timp petrec utilizatorii comparând manual anunțuri similare;
+    \item ce informații îi interesează înainte de a suna vânzătorul;
+    \item dacă un indicator de tip „preț corect / prea mic / prea mare” ar fi util;
+    \item dacă utilizatorii ar dori să vadă și exemple de anunțuri similare, nu doar o estimare numerică;
+    \item ce nivel de toleranță față de prețul estimat li se pare acceptabil.
+\end{itemize}
+
+Concluzia practică a acestei etape a fost că nevoia principală nu este o estimare perfectă, ci o filtrare preliminară. Utilizatorii vor să reducă rapid lista de anunțuri și să știe unde merită investit timp suplimentar. Din acest motiv, aplicația nu se limitează la afișarea unui preț estimat, ci oferă și verdict, diferență procentuală, predicții pe model și anunțuri similare.
+
+\section{Nevoi identificate}
+\label{sec:req-needs}
+
+Din analiza utilizatorilor au rezultat patru nevoi importante. Prima este verificarea rapidă a corectitudinii prețului. Un cumpărător poate vedea zeci de anunțuri într-o singură seară, iar comparația manuală devine obositoare. A doua este detectarea ofertelor suspect de ieftine. În piața auto, un preț mult sub piață poate indica defecte, istoric neclar sau tentativă de fraudă.
+
+A treia nevoie este explicabilitatea. Un simplu număr, de exemplu 12500 EUR, nu este suficient. Utilizatorul trebuie să vadă de ce rezultatul are sens: ce modele au estimat prețul, cât de apropiate sunt predicțiile și ce anunțuri similare există. A patra nevoie este păstrarea istoricului. Cumpărarea unei mașini presupune compararea mai multor opțiuni, iar utilizatorul are nevoie să revină la analizele anterioare.
+
+\section{Cerințe funcționale}
+\label{sec:req-functional}
+
+\begin{table}[htb]
+    \centering
+    \caption{Cerințe funcționale principale}
+    \label{tab:functional-requirements}
+    \begin{tabular}{p{2.5cm}p{9.2cm}}
+        \toprule
+        Cod & Cerință \\
+        \midrule
+        F1 & Aplicația permite crearea unui cont folosind email, username și parolă. \\
+        F2 & Utilizatorul autentificat poate introduce un link \autovit\ sau \mobilede. \\
+        F3 & Sistemul extrage automat datele relevante ale anunțului: titlu, preț, an, kilometraj, combustibil, putere, capacitate cilindrică și imagine, atunci când sunt disponibile. \\
+        F4 & Sistemul estimează prețul corect folosind mai multe modele de regresie antrenate offline. \\
+        F5 & Aplicația afișează verdictul: preț corect, preț prea mic sau preț prea mare. \\
+        F6 & Utilizatorul poate modifica toleranța procentuală folosită pentru verdict. \\
+        F7 & Utilizatorul poate alege metoda de combinare a predicțiilor modelelor. \\
+        F8 & Rezultatul include anunțuri similare din baza de date colectată. \\
+        F9 & Fiecare predicție reușită este salvată în istoricul contului. \\
+        F10 & Utilizatorul poate șterge o analiză individuală sau întregul istoric. \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Cerințe nefuncționale}
+\label{sec:req-nonfunctional}
+
+\begin{table}[htb]
+    \centering
+    \caption{Cerințe nefuncționale}
+    \label{tab:nonfunctional-requirements}
+    \begin{tabular}{p{2.5cm}p{9.2cm}}
+        \toprule
+        Cod & Cerință \\
+        \midrule
+        NF1 & Interfața trebuie să fie în limba română și să fie ușor de folosit pe desktop și mobil. \\
+        NF2 & Sistemul trebuie să ofere feedback vizual în timpul analizării unui link, deoarece scraping-ul poate dura câteva secunde. \\
+        NF3 & Datele brute trebuie păstrate în format auditabil, astfel încât normalizarea și antrenarea să poată fi refăcute. \\
+        NF4 & Modelele și datasetul folosit pentru sugestii trebuie configurate prin variabile de mediu, pentru a permite deployment în cloud. \\
+        NF5 & Parolele nu trebuie salvate în clar, iar sesiunea utilizatorului trebuie gestionată prin cookie HTTP-only. \\
+        NF6 & Erorile de scraping trebuie tratate explicit, fără blocarea aplicației. \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Criterii de acceptare}
+\label{sec:req-acceptance}
+
+Un flux este considerat funcțional dacă utilizatorul poate crea cont, se poate autentifica, poate analiza un link valid, poate vedea verdictul și poate regăsi analiza în istoric. Pentru partea de modelare, acceptarea nu se bazează pe o predicție perfectă pentru fiecare anunț, ci pe obținerea unor metrici rezonabile pe setul de test și pe un comportament coerent în studiile de caz. Pentru partea de deployment, acceptarea minimă este ca ruta \texttt{/health} să confirme existența modelului, datasetului de similaritate și graficelor principale.

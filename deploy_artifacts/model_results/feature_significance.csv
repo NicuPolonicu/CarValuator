@@ -1,0 +1,20 @@
+feature,feature_type,test,sample_size,unique_values,score,effect_size,p_value,keep_feature,reason
+version,categorical,chi_square_binned_target,6077,4843,0.9494903706432563,0.9494903706432563,1.0907975635293566e-35,True,kept
+power_hp,numeric,pearson,7485,321,0.6763882969203814,0.6763882969203814,0.0,True,kept
+year,numeric,pearson,7493,29,0.5574221865806732,0.5574221865806732,0.0,True,kept
+vehicle_age,numeric,pearson,7493,29,0.5574221865806732,0.5574221865806732,0.0,True,kept
+make_model,categorical,chi_square_binned_target,7493,636,0.5336483222013145,0.5336483222013145,0.0,True,kept
+model,categorical,chi_square_binned_target,7493,625,0.5327723867989974,0.5327723867989974,0.0,True,kept
+engine_capacity_cm3,numeric,pearson,5817,207,0.5172368260971878,0.5172368260971878,0.0,True,kept
+hp_per_liter,numeric,pearson,5815,1149,0.5058828869292021,0.5058828869292021,0.0,True,kept
+mileage_km,numeric,pearson,7493,4264,0.4930123160928836,0.4930123160928836,0.0,True,kept
+location_city,categorical,chi_square_binned_target,7452,1007,0.435328375760704,0.435328375760704,7.510131643911719e-59,True,kept
+first_registration_year,numeric,pearson,2022,25,0.3579328149471513,0.3579328149471513,3.608318344544824e-62,True,kept
+seller_type,categorical,chi_square_binned_target,5490,2,0.3289334229264814,0.3289334229264814,3.0774449303461456e-127,True,kept
+make,categorical,chi_square_binned_target,7493,70,0.2963452366819928,0.2963452366819928,0.0,True,kept
+mileage_per_year,numeric,pearson,7386,5171,0.10157610378609766,0.10157610378609766,2.1184471798233336e-18,True,kept
+body_type,categorical,chi_square_binned_target,19,6,0.44972985718589387,0.44972985718589387,0.7547687055214691,False,low chi-square significance
+transmission,categorical,chi_square_binned_target,19,2,0.37480153478366457,0.37480153478366457,0.6146416430934534,False,low chi-square significance
+fuel_type,categorical,chi_square_binned_target,7493,8,0.17743559341789272,0.17743559341789272,1.181100666453746e-180,False,low chi-square significance
+location_region,categorical,chi_square_binned_target,5471,45,0.14340114899145237,0.14340114899145237,6.419066625190957e-26,False,low chi-square significance
+first_registration_month,numeric,pearson,2022,12,0.003921348313870762,0.003921348313870762,0.8601198885850463,False,low pearson significance

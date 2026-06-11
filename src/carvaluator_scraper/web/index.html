@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ro">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,83 +7,160 @@
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
+  <div id="loadingOverlay" class="loading-overlay" aria-hidden="true">
+    <div class="loading-card">
+      <div class="loading-orbit">
+        <div class="loading-ring ring-a"></div>
+        <div class="loading-ring ring-b"></div>
+        <div class="loading-core"></div>
+      </div>
+      <p class="loading-kicker">Se analizeaza anuntul</p>
+      <h2>Comparam pretul cu piata si cautam masini similare.</h2>
+      <p id="loadingMessage" class="loading-copy">Preluam anuntul si extragem datele principale...</p>
+    </div>
+  </div>
+
   <div class="page-shell">
-    <div class="ambient ambient-left"></div>
-    <div class="ambient ambient-right"></div>
+    <header class="topbar">
+      <a class="brand" href="/">
+        <span class="brand-mark">CV</span>
+        <span class="brand-text">CarValuator</span>
+      </a>
+
+      <div class="topbar-actions">
+        <div id="authStatus" class="auth-status">Neautentificat</div>
+        <button id="logoutButton" class="secondary-button topbar-button is-hidden" type="button">Logout</button>
+        <button id="themeToggle" class="theme-toggle" type="button" aria-label="Schimba tema">
+          <span id="themeToggleLabel">Mod luminos</span>
+        </button>
+      </div>
+    </header>
 
     <main class="layout">
       <section class="hero">
-        <p class="eyebrow">Thesis Price Analysis Prototype</p>
-        <h1>Paste an Autovit listing and get a market verdict in seconds.</h1>
+        <p class="hero-kicker">Evaluator pentru anunturi auto second-hand</p>
+        <h1>CarValuator - deal or scam?</h1>
         <p class="hero-copy">
-          The current baseline model compares the ad's listed price against the predicted fair market value
-          from your training data, then flags it as fair, suspiciously low, or overpriced.
+          Aplicatia analizeaza anuntul, estimeaza un pret corect pe baza modelului antrenat
+          si iti arata cateva masini similare din baza de date colectata.
         </p>
+      </section>
 
-        <div class="hero-stats">
-          <article class="stat-card">
-            <span class="stat-label">Model</span>
-            <strong id="modelName">Checking...</strong>
-          </article>
-          <article class="stat-card">
-            <span class="stat-label">Supported Site</span>
-            <strong>Autovit</strong>
-          </article>
-          <article class="stat-card">
-            <span class="stat-label">API Status</span>
-            <strong id="apiStatus">Connecting...</strong>
-          </article>
+      <section id="authPanel" class="panel auth-panel">
+        <div class="auth-copy">
+          <p class="section-kicker">Cont utilizator</p>
+          <h2>Autentifica-te sau creeaza un cont.</h2>
+          <p>Folosim doar email, username si parola. Dupa login poti analiza anunturi Autovit sau mobile.de.</p>
+        </div>
+
+        <div class="auth-card">
+          <div class="auth-tabs" role="tablist" aria-label="Autentificare">
+            <button id="showLoginButton" class="auth-tab is-active" type="button">Login</button>
+            <button id="showRegisterButton" class="auth-tab" type="button">Creeaza cont</button>
+          </div>
+
+          <form id="loginForm" class="auth-form">
+            <label class="field">
+              <span>Email sau username</span>
+              <input id="loginIdentifier" name="identifier" type="text" autocomplete="username" required>
+            </label>
+            <label class="field">
+              <span>Parola</span>
+              <input id="loginPassword" name="password" type="password" autocomplete="current-password" required>
+            </label>
+            <button id="loginButton" class="primary-button" type="submit">Login</button>
+          </form>
+
+          <form id="registerForm" class="auth-form is-hidden">
+            <label class="field">
+              <span>Email</span>
+              <input id="registerEmail" name="email" type="email" autocomplete="email" required>
+            </label>
+            <label class="field">
+              <span>Username</span>
+              <input id="registerUsername" name="username" type="text" autocomplete="username" required>
+            </label>
+            <label class="field">
+              <span>Parola</span>
+              <input id="registerPassword" name="password" type="password" autocomplete="new-password" minlength="8" required>
+            </label>
+            <button id="registerButton" class="primary-button" type="submit">Creeaza cont</button>
+          </form>
+
+          <p id="authMessage" class="form-message" aria-live="polite"></p>
         </div>
       </section>
 
-      <section class="workspace">
-        <div class="panel input-panel">
-          <div class="panel-head">
-            <h2>Score a Listing</h2>
-            <p>Use the same endpoint your future frontend will call.</p>
-          </div>
+      <section class="panel input-panel">
+        <form id="predictForm" class="predict-form">
+          <label class="field">
+            <span>Link anunt Autovit sau mobile.de</span>
+            <input
+              id="urlInput"
+              name="url"
+              type="url"
+              required
+              placeholder="https://www.autovit.ro/... sau https://suchen.mobile.de/..."
+              autocomplete="off"
+            >
+          </label>
 
-          <form id="predictForm" class="predict-form">
+          <div class="analysis-options">
             <label class="field">
-              <span>Autovit URL</span>
+              <span>Metoda estimare finala</span>
+              <select id="ensembleMethodInput" name="ensemble_method">
+                <option value="inverse_mae_with_agreement" selected>MAE + acord intre modele</option>
+                <option value="inverse_mae">Doar MAE</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Toleranta verdict (%)</span>
               <input
-                id="urlInput"
-                name="url"
-                type="url"
-                required
-                placeholder="https://www.autovit.ro/autoturisme/anunt/..."
-                autocomplete="off"
+                id="thresholdInput"
+                name="threshold_percent"
+                type="number"
+                min="1"
+                max="100"
+                step="1"
+                value="15"
+                inputmode="decimal"
               >
             </label>
-
-            <div class="field-row">
-              <label class="field">
-                <span>Verdict Threshold (%)</span>
-                <input id="thresholdInput" name="threshold" type="number" min="1" max="100" step="1" value="15">
-              </label>
-
-              <button id="submitButton" class="primary-button" type="submit">
-                <span class="button-text">Analyze Price</span>
-              </button>
-            </div>
-          </form>
-
-          <div class="actions">
-            <button id="exampleButton" class="secondary-button" type="button">Use Example Listing</button>
           </div>
 
-          <p id="formMessage" class="form-message" aria-live="polite"></p>
+          <div class="form-actions">
+            <button id="submitButton" class="primary-button" type="submit">
+              <span class="button-text">Analizeaza anuntul</span>
+            </button>
+            <button id="exampleButton" class="secondary-button" type="button">Exemplu</button>
+          </div>
+        </form>
+
+        <p id="formMessage" class="form-message" aria-live="polite"></p>
+      </section>
+
+      <section id="resultPanel" class="panel result-panel is-empty">
+        <div class="empty-state">
+          <h2>Rezultatul va aparea aici.</h2>
+          <p>
+            Dupa analiza vei vedea verdictul pentru pret, fotografia principala a masinii si anunturi similare.
+          </p>
         </div>
+      </section>
 
-        <div id="resultPanel" class="panel result-panel is-empty">
-          <div class="empty-state">
-            <p class="empty-kicker">Result Preview</p>
-            <h2>Your valuation will appear here.</h2>
-            <p>
-              We will show the scraped listing details, the predicted fair price, the difference in percent,
-              and the final verdict class that you can reuse in the web app.
-            </p>
+      <section id="historyPanel" class="panel history-panel is-hidden">
+        <div class="history-head">
+          <div>
+            <p class="section-kicker">Istoric analize</p>
+            <h2>Anunturile verificate de contul tau</h2>
           </div>
+          <div class="history-actions">
+            <button id="refreshHistoryButton" class="secondary-button" type="button">Refresh</button>
+            <button id="clearHistoryButton" class="danger-button" type="button">Sterge tot</button>
+          </div>
+        </div>
+        <div id="historyList" class="history-list">
+          <p class="history-empty">Nu ai analizat inca niciun anunt.</p>
         </div>
       </section>
     </main>

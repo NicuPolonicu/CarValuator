@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import math
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -12,29 +13,36 @@ import pandas as pd
 import seaborn as sns
 from scipy.stats import chi2_contingency, pearsonr
 from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import ExtraTreesRegressor, GradientBoostingRegressor, RandomForestRegressor
+from sklearn.ensemble import ExtraTreesRegressor, GradientBoostingRegressor, RandomForestRegressor, VotingRegressor
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import KFold, cross_val_score, train_test_split
+from sklearn.neighbors import KNeighborsRegressor
 from sklearn.pipeline import Pipeline
+from sklearn.linear_model import Ridge
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.svm import SVR
 
 
 TARGET_COLUMN = "price_eur"
+CURRENT_YEAR = datetime.now(timezone.utc).year
 BASE_FEATURE_COLUMNS = [
     "make",
     "model",
+    "make_model",
     "version",
     "year",
+    "vehicle_age",
     "first_registration_month",
     "first_registration_year",
     "mileage_km",
+    "mileage_per_year",
     "fuel_type",
     "transmission",
     "body_type",
     "power_hp",
     "engine_capacity_cm3",
+    "hp_per_liter",
     "seller_type",
     "location_city",
     "location_region",
@@ -42,16 +50,20 @@ BASE_FEATURE_COLUMNS = [
 
 NUMERIC_FEATURES = [
     "year",
+    "vehicle_age",
     "first_registration_month",
     "first_registration_year",
     "mileage_km",
+    "mileage_per_year",
     "power_hp",
     "engine_capacity_cm3",
+    "hp_per_liter",
 ]
 
 CATEGORICAL_FEATURES = [
     "make",
     "model",
+    "make_model",
     "version",
     "fuel_type",
     "transmission",
@@ -69,6 +81,8 @@ DEFAULT_MIN_CRAMERS_V = 0.25
 def load_training_frame(csv_path: Path) -> pd.DataFrame:
     frame = pd.read_csv(csv_path)
     frame = frame.dropna(subset=[TARGET_COLUMN])
+    frame = clean_training_frame(frame)
+    frame = enrich_training_frame(frame)
     return frame
 
 
@@ -95,32 +109,79 @@ def build_preprocessor(scale_numeric: bool, feature_columns: list[str]) -> Colum
 
 
 def build_models(random_state: int, feature_columns: list[str]) -> dict[str, Pipeline]:
-    return {
+    base_models = {
         "svr_rbf": Pipeline(
             steps=[
                 ("preprocessor", build_preprocessor(scale_numeric=True, feature_columns=feature_columns)),
-                ("model", SVR(C=40.0, epsilon=0.1, kernel="rbf")),
+                ("model", SVR(C=55.0, epsilon=0.08, kernel="rbf")),
+            ]
+        ),
+        "ridge": Pipeline(
+            steps=[
+                ("preprocessor", build_preprocessor(scale_numeric=True, feature_columns=feature_columns)),
+                ("model", Ridge(alpha=2.0)),
+            ]
+        ),
+        "knn_distance": Pipeline(
+            steps=[
+                ("preprocessor", build_preprocessor(scale_numeric=True, feature_columns=feature_columns)),
+                ("model", KNeighborsRegressor(n_neighbors=13, weights="distance", metric="minkowski")),
             ]
         ),
         "random_forest": Pipeline(
             steps=[
                 ("preprocessor", build_preprocessor(scale_numeric=False, feature_columns=feature_columns)),
-                ("model", RandomForestRegressor(n_estimators=300, random_state=random_state, n_jobs=-1)),
+                (
+                    "model",
+                    RandomForestRegressor(
+                        n_estimators=450,
+                        min_samples_leaf=2,
+                        random_state=random_state,
+                        n_jobs=-1,
+                    ),
+                ),
             ]
         ),
         "extra_trees": Pipeline(
             steps=[
                 ("preprocessor", build_preprocessor(scale_numeric=False, feature_columns=feature_columns)),
-                ("model", ExtraTreesRegressor(n_estimators=300, random_state=random_state, n_jobs=-1)),
+                (
+                    "model",
+                    ExtraTreesRegressor(
+                        n_estimators=500,
+                        min_samples_leaf=2,
+                        random_state=random_state,
+                        n_jobs=-1,
+                    ),
+                ),
             ]
         ),
         "gradient_boosting": Pipeline(
             steps=[
                 ("preprocessor", build_preprocessor(scale_numeric=False, feature_columns=feature_columns)),
-                ("model", GradientBoostingRegressor(random_state=random_state)),
+                (
+                    "model",
+                    GradientBoostingRegressor(
+                        n_estimators=350,
+                        learning_rate=0.05,
+                        max_depth=3,
+                        subsample=0.9,
+                        random_state=random_state,
+                    ),
+                ),
             ]
         ),
     }
+    base_models["voting_ensemble"] = VotingRegressor(
+        estimators=[
+            ("svr_rbf", base_models["svr_rbf"]),
+            ("extra_trees", base_models["extra_trees"]),
+            ("gradient_boosting", base_models["gradient_boosting"]),
+            ("knn_distance", base_models["knn_distance"]),
+        ],
+        weights=[4, 3, 2, 2],
+    )
+    return base_models
 
 
 def train_and_evaluate(
@@ -145,6 +206,7 @@ def train_and_evaluate(
     model_frame = frame[available_features + [TARGET_COLUMN, "title", "source_listing_key"]].copy()
     x = model_frame[available_features]
     y = model_frame[TARGET_COLUMN]
+    split_bins = build_target_bins(y)
 
     x_train, x_test, y_train, y_test, meta_train, meta_test = train_test_split(
         x,
@@ -152,6 +214,7 @@ def train_and_evaluate(
         model_frame[["title", "source_listing_key"]],
         test_size=test_size,
         random_state=random_state,
+        stratify=split_bins,
     )
 
     significance_frame = analyze_feature_significance(
@@ -176,22 +239,35 @@ def train_and_evaluate(
     best_rmse = float("inf")
     best_predictions: pd.DataFrame | None = None
     best_pipeline: Pipeline | None = None
+    trained_pipelines: dict[str, Any] = {}
+    cv_splitter = build_cv_splitter()
+    train_target = np.log1p(y_train) if log_target else y_train
 
     for name, pipeline in build_models(random_state, selected_features).items():
-        train_target = np.log1p(y_train) if log_target else y_train
         pipeline.fit(x_train[selected_features], train_target)
+        trained_pipelines[name] = pipeline
         raw_predictions = pipeline.predict(x_test[selected_features])
         predictions = np.expm1(raw_predictions) if log_target else raw_predictions
         predictions = np.clip(predictions, a_min=0, a_max=None)
         rmse = mean_squared_error(y_test, predictions) ** 0.5
         mae = mean_absolute_error(y_test, predictions)
         r2 = r2_score(y_test, predictions)
+        cv_scores = cross_val_score(
+            pipeline,
+            x_train[selected_features],
+            train_target,
+            cv=cv_splitter,
+            scoring="neg_root_mean_squared_error",
+            n_jobs=1,
+        )
+        cv_rmse = float(abs(cv_scores.mean()))
         metrics.append(
             {
                 "model": name,
                 "rmse": float(rmse),
                 "mae": float(mae),
                 "r2": float(r2),
+                "cv_rmse": cv_rmse,
                 "trained_on_log_price": log_target,
             }
         )
@@ -212,6 +288,7 @@ def train_and_evaluate(
     metrics_frame = pd.DataFrame(metrics).sort_values("rmse")
     metrics_frame.to_csv(output_dir / "metrics.csv", index=False)
     _make_dataset_plots(frame, output_dir)
+    _make_model_performance_plot(metrics_frame, output_dir)
     if best_predictions is not None:
         best_predictions.sort_values("abs_error_eur", ascending=False).to_csv(
             output_dir / "best_model_predictions.csv",
@@ -232,6 +309,7 @@ def train_and_evaluate(
                 "min_cramers_v": min_cramers_v,
             },
             metrics=metrics,
+            all_pipelines=trained_pipelines,
         )
 
     report = {
@@ -250,6 +328,7 @@ def train_and_evaluate(
         "log_target": log_target,
         "models": metrics,
         "best_model": best_name,
+        "cleaning": summarize_cleaning(frame),
     }
     (output_dir / "training_report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
     return report
@@ -264,6 +343,7 @@ def save_model_bundle(
     log_target: bool,
     feature_selection: dict[str, Any],
     metrics: list[dict[str, Any]],
+    all_pipelines: dict[str, Any],
 ) -> None:
     bundle = {
         "pipeline": pipeline,
@@ -272,9 +352,65 @@ def save_model_bundle(
         "log_target": log_target,
         "feature_selection": feature_selection,
         "metrics": metrics,
+        "all_pipelines": all_pipelines,
         "target_column": TARGET_COLUMN,
     }
     joblib.dump(bundle, path)
+
+
+def clean_training_frame(frame: pd.DataFrame) -> pd.DataFrame:
+    cleaned = frame.copy()
+    valid_power = cleaned["power_hp"].isna() | cleaned["power_hp"].between(30, 900, inclusive="both")
+    valid_engine = cleaned["engine_capacity_cm3"].isna() | cleaned["engine_capacity_cm3"].between(600, 8000, inclusive="both")
+    cleaned = cleaned[
+        cleaned[TARGET_COLUMN].between(750, 250000, inclusive="both")
+        & cleaned["year"].fillna(0).between(1995, CURRENT_YEAR, inclusive="both")
+        & cleaned["mileage_km"].fillna(0).between(0, 500000, inclusive="both")
+        & valid_power
+        & valid_engine
+    ].copy()
+    lower_quantile = cleaned[TARGET_COLUMN].quantile(0.01)
+    upper_quantile = cleaned[TARGET_COLUMN].quantile(0.995)
+    cleaned = cleaned[cleaned[TARGET_COLUMN].between(lower_quantile, upper_quantile, inclusive="both")].copy()
+    return cleaned
+
+
+def enrich_training_frame(frame: pd.DataFrame) -> pd.DataFrame:
+    enriched = frame.copy()
+    enriched["make_model"] = (
+        enriched["make"].fillna("").astype(str).str.strip() + " " + enriched["model"].fillna("").astype(str).str.strip()
+    ).str.strip()
+    enriched["make_model"] = enriched["make_model"].replace("", pd.NA)
+    enriched["vehicle_age"] = enriched["year"].apply(lambda value: CURRENT_YEAR - value if pd.notna(value) else np.nan)
+    enriched["vehicle_age"] = enriched["vehicle_age"].clip(lower=0)
+    enriched["mileage_per_year"] = enriched["mileage_km"] / enriched["vehicle_age"].replace({0: np.nan})
+    enriched["mileage_per_year"] = enriched["mileage_per_year"].replace([np.inf, -np.inf], np.nan)
+    enriched["hp_per_liter"] = (
+        enriched["power_hp"] / (enriched["engine_capacity_cm3"] / 1000.0).replace({0: np.nan})
+    )
+    enriched["hp_per_liter"] = enriched["hp_per_liter"].replace([np.inf, -np.inf], np.nan)
+    return enriched
+
+
+def summarize_cleaning(frame: pd.DataFrame) -> dict[str, Any]:
+    return {
+        "price_min": float(frame[TARGET_COLUMN].min()),
+        "price_max": float(frame[TARGET_COLUMN].max()),
+        "year_min": int(frame["year"].min()) if frame["year"].notna().any() else None,
+        "year_max": int(frame["year"].max()) if frame["year"].notna().any() else None,
+    }
+
+
+def build_target_bins(target: pd.Series) -> pd.Series | None:
+    try:
+        bins = pd.qcut(target, q=5, duplicates="drop")
+    except ValueError:
+        return None
+    return bins if bins.nunique() >= 2 else None
+
+
+def build_cv_splitter() -> KFold:
+    return KFold(n_splits=3, shuffle=True, random_state=42)
 
 
 def analyze_feature_significance(
@@ -477,4 +613,18 @@ def _make_prediction_plot(predictions: pd.DataFrame, model_name: str, output_dir
     plt.ylabel("Predicted Price (EUR)")
     plt.tight_layout()
     plt.savefig(output_dir / "actual_vs_predicted.png", dpi=150)
+    plt.close()
+
+
+def _make_model_performance_plot(metrics: pd.DataFrame, output_dir: Path) -> None:
+    plot_frame = metrics.sort_values("rmse").copy()
+    plt.figure(figsize=(10, 5.5))
+    sns.barplot(data=plot_frame, x="rmse", y="model", hue="model", palette="viridis", legend=False)
+    plt.title("Model Performance by Test RMSE")
+    plt.xlabel("RMSE (EUR, lower is better)")
+    plt.ylabel("Model")
+    for index, row in enumerate(plot_frame.itertuples(index=False)):
+        plt.text(float(row.rmse) * 1.01, index, f"R2={float(row.r2):.3f}", va="center", fontsize=9)
+    plt.tight_layout()
+    plt.savefig(output_dir / "model_performance.png", dpi=150)
     plt.close()

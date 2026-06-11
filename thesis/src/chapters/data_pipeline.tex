@@ -1,0 +1,131 @@
+\chapter{Colectarea și pregătirea datelor}
+\label{chapter:data}
+
+\section{Sursele de date}
+\label{sec:data-sources}
+
+Datele proiectului provin din anunțuri publice de pe \autovit\ și \mobilede. Alegerea acestor două surse are o justificare practică. \autovit\ este relevant pentru piața românească, iar \mobilede\ este una dintre platformele europene importante pentru autoturisme second-hand, inclusiv pentru cumpărătorii români care caută mașini din Germania.
+
+Setul combinat folosit pentru evaluarea finală conține 9633 de rânduri păstrate după normalizare și deduplicare. Din acestea, 7057 provin din \autovit, iar 2576 din \mobilede. Creșterea volumului \mobilede\ a fost obținută printr-o metodă experimentală bazată pe pagini SEO convertite în Markdown, descrisă în secțiunea dedicată acestei surse.
+
+\labelindexref{Figura}{fig:dataset-sources} prezintă distribuția surselor. Setul rămâne dominat de \autovit, dar ponderea \mobilede\ este suficient de mare pentru a contribui vizibil la distribuțiile de preț și la antrenarea finală.
+
+\fig[width=0.70\textwidth]{src/img/carvaluator/dataset_sources.png}{fig:dataset-sources}{Componența setului de date după sursă}
+
+\begin{table}[htb]
+    \centering
+    \caption{Rezumatul setului combinat înainte de curățarea finală pentru antrenare}
+    \label{tab:data-summary}
+    \begin{tabular}{lr}
+        \toprule
+        Indicator & Valoare \\
+        \midrule
+        Rânduri încărcate & 10137 \\
+        Rânduri păstrate după deduplicare & 9633 \\
+        Duplicate exacte eliminate & 291 \\
+        Duplicate fuzzy eliminate & 213 \\
+        Rânduri fără preț & 9 \\
+        Mărci distincte & 82 \\
+        Modele distincte & 693 \\
+        Mediană preț brut & 16640 EUR \\
+        Mediană kilometraj brut & 112927 km \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Scraping pentru Autovit}
+\label{sec:data-autovit}
+
+Pentru \autovit, scraperul a fost construit pornind de la paginile de căutare. Fiecare pagină conține mai multe anunțuri, iar structura HTML include informații suficiente pentru extragerea linkului, titlului, prețului, anului, kilometrajului și câtorva câmpuri tehnice. În unele cazuri, datele sunt disponibile și în structuri JSON incluse în pagină, ceea ce permite o extragere mai stabilă decât parsarea textului vizibil.
+
+Fluxul de scraping salvează fiecare anunț ca obiect JSONL. Alegerea JSONL este intenționată: fiecare linie este un document independent, iar fișierul poate fi procesat incremental. Dacă scraping-ul se oprește la pagina 80 din 150, datele deja salvate rămân valide. În plus, JSONL păstrează și câmpul \texttt{raw}, unde pot fi arhivate detalii specifice site-ului. Această decizie a fost utilă atunci când unele câmpuri au trebuit reinterpretate fără a reporni colectarea.
+
+În practică, \autovit\ a ridicat mai multe dificultăți. Prima dificultate a fost instabilitatea structurii paginilor. Numele claselor HTML și poziția câmpurilor se pot modifica fără avertisment, iar scraperul trebuie să fie tolerant la câmpuri lipsă. A doua dificultate a fost deduplicarea. Anunțurile promovate sau republicate pot apărea pe mai multe pagini, iar identificatorul de listing nu este întotdeauna suficient pentru eliminarea tuturor cazurilor similare. A treia dificultate a fost legată de imagini. Unele imagini sunt încărcate lazy, iar alte imagini pot reprezenta elemente de dealer, nu mașina propriu-zisă.
+
+\section{Scraping pentru mobile.de}
+\label{sec:data-mobilede}
+
+Integrarea \mobilede\ a fost mai dificilă decât integrarea \autovit. Site-ul are localizare pe mai multe limbi, pagini dinamice, protecții anti-bot și comportament diferit între paginile de căutare și paginile de detaliu. În multe încercări, cererile automate au returnat erori 401, 403 sau 429. Aceste coduri indică lipsă de autorizare, interdicție de acces sau limitare de rată.
+
+Pentru a crește șansele de colectare, scraperul \mobilede\ încearcă să folosească endpoint-uri JSON cu headere de browser. În plus, există un fallback cu Playwright, util atunci când pagina trebuie randată într-un browser real. Totuși, fallback-ul nu garantează succesul, deoarece protecțiile pot detecta mediile automate sau pot afișa pagini de consimțământ și acces restricționat.
+
+O problemă importantă a apărut și la imaginile anunțurilor \mobilede. Inițial, aplicația putea afișa imaginea greșită, de exemplu bannerul dealerului sau fotografia de showroom, nu fotografia principală a mașinii. Soluția a fost prioritizarea imaginilor din galeria anunțului și filtrarea surselor care par logo-uri sau imagini de dealer. Această problemă arată că scraping-ul nu înseamnă doar extragerea unui câmp, ci și interpretarea corectă a contextului în care apare acel câmp.
+
+Din cauza acestor dificultăți, primele date \mobilede\ colectate au fost puține. Integrarea a rămas însă valoroasă pentru aplicație deoarece permite analizarea unor linkuri de detaliu și expune limitele reale ale unui sistem care depinde de site-uri externe.
+
+Într-o etapă ulterioară, am testat și o strategie alternativă pentru mărirea volumului de date \mobilede. API-ul oficial de căutare \mobilede\ există, dar accesul la anunțuri necesită autentificare Basic și un cont cu drepturi pentru serviciul respectiv \cite{mobilede_search_api}. Fără aceste credențiale, endpoint-ul de căutare a răspuns cu 401, în timp ce endpoint-urile publice de referință au returnat doar liste de mărci și categorii, nu anunțuri concrete.
+
+Metoda care a funcționat practic a fost citirea paginilor SEO publice de forma \url{https://www.mobile.de/en/car/marca/model} printr-un serviciu de conversie HTML în Markdown, Jina Reader \cite{jina_reader}. În loc să controleze un browser, scriptul descarcă reprezentarea Markdown a paginii, apoi parsează cardurile de anunțuri. Din fiecare card se pot extrage titlul, prețul, anul primei înmatriculări, kilometrajul, puterea, combustibilul, orașul și prima imagine. Pentru cilindree, cardurile nu oferă mereu un câmp separat, astfel că parserul folosește o regulă conservatoare din titlu, de exemplu \texttt{2.0 TDI}, \texttt{1.6 HDI} sau \texttt{1.5 TSI}. Regula evită codurile comerciale precum \texttt{35 TFSI} și expresiile de consum precum \texttt{5,5 l/100km}. Pentru că aceste carduri nu expun întotdeauna ID-ul real al anunțului, scriptul generează un identificator sintetic pe baza unei amprente formate din titlu, marcă, model, an, kilometraj, putere, preț și oraș.
+
+Prin această metodă au fost citite 118 pagini de marcă sau model și au fost obținute 2735 rânduri brute \mobilede, după filtrarea blocurilor care nu reprezentau anunțuri. După exportul prin pipeline-ul de normalizare și deduplicare fuzzy au rămas 2534 rânduri curate din metoda Markdown. Combinarea cu lotul \mobilede\ obținut anterior a produs 2576 rânduri curate. În acest set \mobilede\ combinat, puterea este disponibilă pentru 2533 rânduri, iar capacitatea cilindrică pentru 647 rânduri. Această metodă nu înlocuiește API-ul oficial și nu este ideală pentru producție, deoarece depinde de un serviciu intermediar și nu oferă toate câmpurile tehnice, precum transmisia sau caroseria. Totuși, pentru un prototip academic, ea oferă un snapshot suplimentar util și reproductibil, salvat local în JSONL și CSV.
+
+Pentru ca aceste rânduri să fie folosite la antrenare, filtrarea finală a fost ajustată. Valorile numerice imposibile sunt eliminate în continuare, însă câmpurile tehnice lipsă, precum capacitatea cilindrică, nu mai duc automat la eliminarea rândului. Ele sunt imputate ulterior de pipeline-ul de preprocesare. Această schimbare este importantă deoarece paginile Markdown oferă preț, an, kilometraj și putere, dar nu întotdeauna detalii complete despre motor.
+
+\section{Schema datelor brute}
+\label{sec:data-schema}
+
+Fiecare rând brut conține câmpuri comune și câmpuri specifice sursei. Câmpurile comune sunt folosite ulterior pentru normalizare și modelare. \labelindexref{Tabelul}{tab:raw-fields} prezintă câteva exemple.
+
+\begin{table}[htb]
+    \centering
+    \caption{Câmpuri extrase din anunțuri}
+    \label{tab:raw-fields}
+    \begin{tabular}{lp{8cm}}
+        \toprule
+        Câmp & Rol \\
+        \midrule
+        \texttt{source} & Platforma de proveniență, de exemplu \texttt{autovit} sau \texttt{mobilede} \\
+        \texttt{listing\_id} & Identificatorul anunțului, atunci când poate fi extras \\
+        \texttt{url} & Linkul original al anunțului \\
+        \texttt{title} & Titlul afișat în anunț \\
+        \texttt{make}, \texttt{model}, \texttt{version} & Marca, modelul și versiunea vehiculului \\
+        \texttt{year}, \texttt{mileage\_km} & Anul și kilometrajul \\
+        \texttt{price\_eur} & Prețul convertit sau standardizat în EUR \\
+        \texttt{fuel\_type}, \texttt{transmission} & Câmpuri tehnice categorice \\
+        \texttt{power\_hp}, \texttt{engine\_capacity\_cm3} & Putere și capacitate cilindrică \\
+        \texttt{seller\_type}, \texttt{location\_city} & Context comercial și geografic \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Normalizare}
+\label{sec:data-normalization}
+
+Datele brute sunt utile pentru audit, dar nu pot fi folosite direct în modele. Prețurile pot fi scrise cu separatori diferiți, kilometrajul poate conține text, combustibilul poate avea variante lingvistice, iar unele câmpuri pot lipsi. Normalizarea transformă aceste reprezentări într-un format comun.
+
+Prețul este convertit în \texttt{price\_eur}. În datele curente, majoritatea anunțurilor sunt deja în EUR, dar câmpul păstrează explicit moneda originală pentru extensii viitoare. Kilometrajul este extras ca număr întreg în kilometri. Puterea este standardizată în cai putere, iar capacitatea cilindrică în centimetri cubi. Pentru combustibil, valorile sunt mapate în categorii precum \texttt{diesel}, \texttt{petrol}, \texttt{hybrid}, \texttt{plug\_in\_hybrid} și \texttt{electric}.
+
+Normalizarea construiește și câmpuri auxiliare. \texttt{dedupe\_exact\_key} identifică duplicatele cu același ID de sursă. \texttt{dedupe\_fuzzy\_key} combină marca, modelul, anul, kilometrajul, prețul și vânzătorul într-o amprentă conservatoare. \texttt{completeness\_score} numără câte câmpuri relevante sunt prezente, fiind util pentru filtrarea rândurilor slabe.
+
+\section{Deduplicare}
+\label{sec:data-dedup}
+
+Deduplicarea are două niveluri. Primul nivel elimină duplicate exacte, folosind cheia de sursă și identificatorul anunțului. Al doilea nivel elimină duplicate probabile. Acesta este necesar deoarece același vehicul poate apărea cu identificatori diferiți sau poate fi republicat.
+
+Cheia fuzzy este construită astfel încât să fie conservatoare. Dacă două anunțuri au aceeași marcă, același model, același an, kilometraj foarte asemănător, preț foarte asemănător și același vânzător sau oraș, este probabil să fie același vehicul. În setul combinat extins, acest pas a eliminat 213 rânduri suplimentare după eliminarea duplicatelor exacte. Numărul a crescut față de experimentul inițial deoarece paginile SEO \mobilede\ pot afișa același anunț în mai multe pagini de marcă sau model.
+
+\section{Analiza exploratorie}
+\label{sec:data-eda}
+
+Analiza exploratorie arată că datele sunt neuniforme. Distribuția prețurilor este asimetrică, cu multe anunțuri în zona 5000-25000 EUR și câteva vehicule premium cu valori mult mai mari. \labelindexref{Figura}{fig:price-distribution} ilustrează această distribuție.
+
+\fig[width=0.78\textwidth]{src/img/carvaluator/price_distribution.png}{fig:price-distribution}{Distribuția prețurilor în setul de date}
+
+Kilometrajul și prețul au o relație negativă, dar relația nu este perfectă. Mașinile noi cu kilometraj mic sunt mai scumpe, însă marca și segmentul pot schimba semnificativ poziția unui anunț. O mașină premium cu kilometraj mare poate rămâne mai scumpă decât o mașină de oraș cu kilometraj mic. \labelindexref{Figura}{fig:price-mileage} arată această relație.
+
+\fig[width=0.82\textwidth]{src/img/carvaluator/price_vs_mileage.png}{fig:price-mileage}{Prețul în funcție de kilometraj}
+
+\labelindexref{Figura}{fig:median-year} arată evoluția medianei prețului în funcție de anul mașinii. Tendința generală este crescătoare pentru mașinile mai noi, dar există variații cauzate de compoziția pe mărci și modele.
+
+\fig[width=0.82\textwidth]{src/img/carvaluator/median_price_by_year.png}{fig:median-year}{Mediana prețului în funcție de anul mașinii}
+
+Cele mai frecvente mărci sunt prezentate în \labelindexref{Figura}{fig:top-makes}. Distribuția confirmă faptul că setul de date reflectă preferințele pieței locale, cu mărci comune în România și Europa.
+
+\fig[width=0.82\textwidth]{src/img/carvaluator/top_makes.png}{fig:top-makes}{Cele mai frecvente mărci în setul de date}
+
+\section{Pregătirea pentru antrenare}
+\label{sec:data-training-ready}
+
+Setul final pentru antrenare nu include toate rândurile normalizate. Înainte de împărțirea train-test, pipeline-ul elimină exemple cu prețuri nerealiste, ani foarte vechi sau viitori nejustificați și valori tehnice extreme. Pentru antrenarea finală pe setul extins, raportul indică 9367 rânduri curate, dintre care 7493 au fost folosite la antrenare și 1874 la testare.
+
+Caracteristicile candidate includ marca, modelul, combinația marcă-model, versiunea, anul, vârsta vehiculului, luna și anul primei înmatriculări, kilometrajul, kilometrajul pe an, combustibilul, transmisia, caroseria, puterea, capacitatea cilindrică, raportul cai putere pe litru, tipul vânzătorului și localizarea. Nu toate aceste caracteristici sunt păstrate. Selecția statistică este discutată în capitolul următor.

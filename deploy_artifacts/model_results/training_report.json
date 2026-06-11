@@ -1,0 +1,115 @@
+{
+  "row_count": 9367,
+  "train_rows": 7493,
+  "test_rows": 1874,
+  "target": "price_eur",
+  "candidate_features": [
+    "make",
+    "model",
+    "make_model",
+    "version",
+    "year",
+    "vehicle_age",
+    "first_registration_month",
+    "first_registration_year",
+    "mileage_km",
+    "mileage_per_year",
+    "fuel_type",
+    "transmission",
+    "body_type",
+    "power_hp",
+    "engine_capacity_cm3",
+    "hp_per_liter",
+    "seller_type",
+    "location_city",
+    "location_region"
+  ],
+  "selected_features": [
+    "version",
+    "power_hp",
+    "year",
+    "vehicle_age",
+    "make_model",
+    "model",
+    "engine_capacity_cm3",
+    "hp_per_liter",
+    "mileage_km",
+    "location_city",
+    "first_registration_year",
+    "seller_type",
+    "make",
+    "mileage_per_year"
+  ],
+  "feature_selection": {
+    "enabled": true,
+    "alpha": 0.05,
+    "min_abs_pearson": 0.05,
+    "min_cramers_v": 0.25
+  },
+  "log_target": true,
+  "models": [
+    {
+      "model": "svr_rbf",
+      "rmse": 4816.444709258896,
+      "mae": 2729.413436548832,
+      "r2": 0.9157683693897568,
+      "cv_rmse": 0.2028494990832845,
+      "trained_on_log_price": true
+    },
+    {
+      "model": "ridge",
+      "rmse": 5774.391249638826,
+      "mae": 2924.7452851827397,
+      "r2": 0.8789305796701615,
+      "cv_rmse": 0.2027812257204781,
+      "trained_on_log_price": true
+    },
+    {
+      "model": "knn_distance",
+      "rmse": 5660.184928467367,
+      "mae": 3319.933598500751,
+      "r2": 0.8836722599174371,
+      "cv_rmse": 0.23632529980657324,
+      "trained_on_log_price": true
+    },
+    {
+      "model": "random_forest",
+      "rmse": 5292.423494296528,
+      "mae": 3175.312398501168,
+      "r2": 0.8982975939987257,
+      "cv_rmse": 0.22592261694469637,
+      "trained_on_log_price": true
+    },
+    {
+      "model": "extra_trees",
+      "rmse": 4991.756041960734,
+      "mae": 2967.4101308126506,
+      "r2": 0.909524966122072,
+      "cv_rmse": 0.21331774125313566,
+      "trained_on_log_price": true
+    },
+    {
+      "model": "gradient_boosting",
+      "rmse": 5093.278446330657,
+      "mae": 3215.953491612595,
+      "r2": 0.9058073774831467,
+      "cv_rmse": 0.21728496581191967,
+      "trained_on_log_price": true
+    },
+    {
+      "model": "voting_ensemble",
+      "rmse": 4602.1593470580065,
+      "mae": 2695.834903611749,
+      "r2": 0.9230966332070616,
+      "cv_rmse": 0.1941655226384468,
+      "trained_on_log_price": true
+    }
+  ],
+  "best_model": "voting_ensemble",
+  "cleaning": {
+    "price_min": 2200.0,
+    "price_max": 125000.0,
+    "year_min": 1995,
+    "year_max": 2026
+  }
+}

@@ -1,0 +1,79 @@
+\chapter{Introducere}
+\label{chapter:intro}
+
+\abbrev{API}{interfață de programare a aplicațiilor}
+\abbrev{CSV}{valori separate prin virgulă}
+\abbrev{JSONL}{format JSON pe linii}
+\abbrev{KNN}{metoda celor mai apropiați vecini}
+\abbrev{MAE}{eroare absolută medie}
+\abbrev{ML}{învățare automată}
+\abbrev{RMSE}{rădăcina erorii pătratice medii}
+\abbrev{SVR}{regresie cu vectori suport}
+
+\section{Contextul problemei}
+\label{sec:intro-context}
+
+Piața autoturismelor second-hand este una dintre cele mai active piețe online pentru utilizatorii obișnuiți. Decizia de cumpărare este dificilă deoarece prețul unui vehicul nu depinde doar de marcă și model, ci și de vârstă, kilometraj, motorizare, dotări, stare, istoric de service, tip de vânzător, localizare și momentul apariției anunțului. În practică, două mașini care par similare la prima vedere pot avea prețuri foarte diferite, iar un cumpărător fără experiență poate interpreta greșit o ofertă.
+
+Dimensiunea pieței justifică nevoia unui instrument de analiză preliminară. În România, segmentul mașinilor second-hand din import a ajuns în 2024 la 344486 de unități, iar reînmatriculările interne au depășit 710000 de unități, cel mai ridicat nivel din ultimii șase ani \cite{revistabiz_auto_2024}. La nivel european, analiza Joint Research Centre arată că mașinile noi reprezintă doar o parte din totalul vânzărilor anuale de autoturisme și că datele despre piața vehiculelor rulate sunt dificil de armonizat între state \cite{jrc_used_vehicle_market}. Acest context susține abordarea proiectului: colectarea unui snapshot propriu de anunțuri și transformarea lui într-un set de date utilizabil pentru estimare.
+
+O ofertă prea mică poate ascunde probleme tehnice, daune nedeclarate, kilometraj modificat, documente incomplete sau chiar o tentativă de fraudă. O ofertă prea mare poate fi doar rezultatul unei așteptări nerealiste din partea vânzătorului sau al unei prezentări comerciale agresive. Între aceste extreme există un interval de preț considerat rezonabil, iar identificarea lui presupune compararea anunțului cu exemple asemănătoare din piață.
+
+Modelele hedonice de preț, introduse în literatura economică de Rosen, tratează bunurile diferențiate ca pachete de caracteristici, iar prețul observat este rezultatul contribuției acestor caracteristici \cite{rosen1974hedonic}. În cazul autoturismelor, această idee este naturală: puterea motorului, anul, kilometrajul și marca sunt trăsături care influențează valoarea percepută. Lucrarea de față folosește aceeași intuiție, dar într-o formă aplicată: colectează anunțuri reale, extrage caracteristicile vehiculelor și antrenează modele de regresie pentru estimarea prețului.
+
+\section{Motivația proiectului}
+\label{sec:intro-motivation}
+
+Motivația proiectului \project\ este una practică. Utilizatorul introduce un link de anunț \autovit\ sau \mobilede, iar aplicația răspunde cu o estimare de preț corect și cu un verdict simplu: preț corect, preț prea mic sau preț prea mare. În loc să ofere doar un număr, aplicația afișează și estimările fiecărui model, diferența procentuală față de prețul publicat, imaginea mașinii, anunțuri similare și o scurtă istorie a analizelor efectuate de contul curent.
+
+O astfel de soluție nu înlocuiește o inspecție tehnică și nu poate garanta că un vehicul este sigur de cumpărat. Totuși, poate reduce timpul necesar unei analize preliminare. Utilizatorul nu mai compară manual zeci de anunțuri, ci primește rapid o măsură orientativă a poziționării prețului. Pentru un proiect de diplomă, această problemă este potrivită deoarece include componente diverse: colectare de date, normalizare, deduplicare, analiză statistică, regresie, interfață web, autentificare și deployment.
+
+\section{Obiectivele lucrării}
+\label{sec:intro-objectives}
+
+Lucrarea are următoarele obiective principale:
+
+\begin{itemize}
+    \item construirea unui pipeline de scraping pentru anunțuri auto publice de pe \autovit\ și \mobilede;
+    \item salvarea datelor brute într-un format auditabil, JSONL, astfel încât procesarea să poată fi refăcută fără scraping repetat;
+    \item normalizarea câmpurilor relevante pentru învățare automată, inclusiv preț, an, kilometraj, combustibil, transmisie, putere și capacitate cilindrică;
+    \item eliminarea duplicatelor exacte și a duplicatelor probabile folosind chei derivate din caracteristicile vehiculului;
+    \item selecția caracteristicilor semnificative folosind corelație Pearson pentru variabile numerice și teste de tip chi-pătrat cu efect Cramér pentru variabile categorice;
+    \item antrenarea și compararea mai multor modele de regresie, inclusiv SVR, Ridge, KNN și modele bazate pe arbori;
+    \item folosirea unei ținte logaritmice pentru preț, pentru a reduce influența disproporționată a mașinilor foarte scumpe;
+    \item integrarea modelului într-o aplicație web în limba română, cu autentificare, istoric, sugestii similare și controale configurabile pentru verdict.
+\end{itemize}
+
+Aceste obiective urmăresc nu doar obținerea unei predicții, ci și construirea unui sistem coerent, reproductibil și utilizabil. Din acest motiv, lucrarea insistă pe deciziile de proiectare și pe limitele întâlnite, nu doar pe valorile finale ale metricilor.
+
+\section{Metodologie generală}
+\label{sec:intro-method}
+
+Fluxul proiectului urmează ideea procesului CRISP-DM, care separă un proiect de data mining în înțelegerea problemei, înțelegerea datelor, pregătirea datelor, modelare, evaluare și implementare \cite{shearer2000crispdm}. În contextul acestei lucrări, aceste etape au fost adaptate la contextul unei aplicații web.
+
+În prima etapă s-a definit problema de business: utilizatorul vrea să știe dacă prețul unui anunț pare rezonabil. În a doua etapă s-au colectat date din anunțuri publice, cu atenție la limitările tehnice și etice ale scraping-ului. În a treia etapă datele au fost transformate într-un set de antrenare curat. În etapa de modelare au fost comparate mai multe regresii. În etapa de evaluare s-au urmărit RMSE, MAE și \(R^2\), metrici uzuale pentru regresie \cite{sklearn_metrics}. În ultima etapă, cel mai util flux a fost expus prin API și interfață web.
+
+Workflow-ul aplicației este ilustrat în \labelindexref{Figura}{fig:intro-flow}. Diagrama arată separarea dintre colectarea datelor, pregătirea setului, antrenarea modelelor și utilizarea aplicației.
+
+\fig[width=0.92\textwidth]{src/img/carvaluator/application_flow.png}{fig:intro-flow}{Fluxul general al proiectului \project}
+
+\section{Contribuții}
+\label{sec:intro-contributions}
+
+Contribuțiile principale ale lucrării sunt următoarele:
+
+\begin{itemize}
+    \item un scraper funcțional pentru \autovit, cu extragere de date din pagini de căutare și pagini de detaliu;
+    \item o integrare pentru \mobilede, cu suport pentru linkuri de detaliu, scraping experimental prin pagini SEO și documentarea problemelor de blocare întâlnite;
+    \item un modul de normalizare care produce câmpuri consecvente pentru modelare;
+    \item un mecanism de deduplicare care elimină atât duplicate exacte, cât și anunțuri foarte asemănătoare;
+    \item un pipeline de antrenare cu selecție statistică a caracteristicilor și modele multiple;
+    \item un mecanism de predicție finală bazat pe medie ponderată a modelelor, cu două strategii selectabile de utilizator;
+    \item o aplicație web completă, cu autentificare, istoric pe cont, afișare de imagini și recomandări similare;
+    \item pregătirea proiectului pentru deployment pe Render folosind variabile de mediu și artefacte compacte.
+\end{itemize}
+
+\section{Structura lucrării}
+\label{sec:intro-structure}
+
+Capitolul \ref{chapter:requirements} prezintă analiza utilizatorilor și cerințele aplicației. Capitolul \ref{chapter:market} discută piața și abordările existente pe \autovit\ și \mobilede. Capitolul \ref{chapter:background} prezintă fundamentele teoretice și lucrările relevante. Capitolul \ref{chapter:data} descrie colectarea și pregătirea datelor. Capitolul \ref{chapter:models} explică modelele și selecția caracteristicilor. Capitolul \ref{chapter:application} prezintă arhitectura aplicației web. Capitolul \ref{chapter:case-studies} validează funcțional aplicația prin scenarii, iar Capitolul \ref{chapter:evaluation} discută rezultatele experimentale și graficele generate. Capitolul \ref{chapter:conclusions} sintetizează dificultățile întâlnite, limitele curente și direcțiile viitoare.

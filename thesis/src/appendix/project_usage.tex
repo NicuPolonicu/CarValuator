@@ -1,0 +1,77 @@
+\chapter{Comenzi utile pentru reproducerea experimentelor}
+\label{appendix:commands}
+
+Această anexă listează comenzile principale folosite în proiect. Ele sunt utile pentru refacerea fluxului experimental pe orice sistem cu Windows PowerShell.
+
+\section{Pornirea mediului}
+
+\begin{lstlisting}[language=bash,caption={Inițializarea mediului Python},label={lst:venv}]
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -e .
+python -m playwright install chromium
+\end{lstlisting}
+
+\section{Colectarea datelor}
+
+\begin{lstlisting}[language=bash,caption={Exemplu de scraping Autovit},label={lst:scrape-autovit}]
+python -m carvaluator_scraper.cli scrape-search autovit "https://www.autovit.ro/autoturisme" --pages 150 --delay 0.4 --output data\autovit_xl.jsonl
+\end{lstlisting}
+
+\begin{lstlisting}[language=bash,caption={Exemplu de scraping mobile.de},label={lst:scrape-mobilede}]
+python -m carvaluator_scraper.cli scrape-search mobilede "https://suchen.mobile.de/fahrzeuge/search.html?dam=false&isSearchRequest=true&ref=quickSearch&s=Car&vc=Car" --pages 5 --delay 1 --output data\mobilede_search.jsonl
+\end{lstlisting}
+
+\begin{lstlisting}[language=bash,caption={Scraping experimental mobile.de prin pagini Markdown},label={lst:scrape-mobilede-reader}]
+python scripts\scrape_mobilede_reader.py --output data\mobilede_reader_20260606.jsonl --report data\mobilede_reader_20260606_report.json --cache-dir data\mobilede_reader_cache_20260606
+\end{lstlisting}
+
+\section{Pregătirea setului de date}
+
+\begin{lstlisting}[language=bash,caption={Export CSV pentru antrenare},label={lst:export-csv}]
+python -m carvaluator_scraper.cli export-csv data\autovit_xl.jsonl --output data\autovit_xl.csv --drop-fuzzy-duplicates --report data\autovit_xl_export_report.json
+\end{lstlisting}
+
+\begin{lstlisting}[language=bash,caption={Export CSV pentru setul mobile.de colectat prin reader},label={lst:export-mobilede-reader}]
+python -m carvaluator_scraper.cli export-csv data\mobilede_reader_20260606.jsonl --output data\mobilede_reader_20260606.csv --drop-fuzzy-duplicates --report data\mobilede_reader_20260606_export_report.json
+\end{lstlisting}
+
+\begin{lstlisting}[language=bash,caption={Export CSV combinat pentru experimentul final},label={lst:export-combined-reader}]
+python -m carvaluator_scraper.cli export-csv data\autovit_xl.jsonl data\autovit_more_20260526.jsonl data\mobilede_consolidated_20260606.jsonl data\mobilede_reader_20260606.jsonl --output data\combined_reader_20260606.csv --drop-fuzzy-duplicates --report data\combined_reader_20260606_report.json
+\end{lstlisting}
+
+\section{Antrenarea modelelor}
+
+\begin{lstlisting}[language=bash,caption={Antrenare cu țintă logaritmică},label={lst:train-log}]
+python -m carvaluator_scraper.cli train-models data\combined_reader_20260606.csv --output-dir data\model_results_combined_reader_20260606_log --log-target
+\end{lstlisting}
+
+\section{Pornirea aplicației}
+
+\begin{lstlisting}[language=bash,caption={Pornire automată cu scriptul proiectului},label={lst:start-script}]
+.\scripts\start-carvaluator.ps1 -Port 8017 -Background -StopExisting
+\end{lstlisting}
+
+\begin{lstlisting}[language=bash,caption={Pornirea serverului local},label={lst:start-server}]
+$env:CARVALUATOR_MODEL_BUNDLE = "data\model_results_combined_reader_20260606_log\best_model.joblib"
+$env:CARVALUATOR_SIMILARITY_CSV = "data\combined_reader_20260606.csv"
+$env:CARVALUATOR_API_PORT = "8017"
+.\.venv\Scripts\python.exe -m carvaluator_scraper.api
+\end{lstlisting}
+
+După pornire, aplicația rulează local la adresa \texttt{http://127.0.0.1:8017}. Ruta \texttt{/health} verifică dacă modelul, datasetul de similaritate și graficele principale sunt disponibile.
+
+\section{Pregătirea pentru Render}
+
+\begin{lstlisting}[language=bash,caption={Pregătirea artefactelor pentru deployment Render},label={lst:render-artifacts}]
+.\scripts\prepare-render-artifacts.ps1 -Clean -CompressModel
+\end{lstlisting}
+
+Comanda creează folderul \texttt{deploy\_artifacts}, copiază modelul \texttt{best\_model.joblib}, datasetul \texttt{combined\_reader\_20260606.csv} și graficele generate la antrenare. Fișierul \texttt{render.yaml} folosește aceste căi:
+
+\begin{lstlisting}[language=bash,caption={Variabile principale pentru Render},label={lst:render-vars}]
+CARVALUATOR_MODEL_BUNDLE=deploy_artifacts/model_results/best_model.joblib
+CARVALUATOR_SIMILARITY_CSV=deploy_artifacts/datasets/combined_reader_20260606.csv
+\end{lstlisting}
+
+Pentru un deployment stabil, artefactele mari trebuie versionate sau livrate separat. Modelul comprimat al experimentului final are aproximativ 204 MB, ceea ce poate fi prea mult pentru un flux simplu prin GitHub fără Git LFS sau fără un mecanism extern de descărcare.

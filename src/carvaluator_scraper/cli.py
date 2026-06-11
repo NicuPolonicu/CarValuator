@@ -63,10 +63,18 @@ def build_parser() -> argparse.ArgumentParser:
     train_parser.add_argument("--log-target", action="store_true", help="Train on log1p(price_eur) and convert predictions back to EUR")
 
     predict_parser = subparsers.add_parser("predict-from-link", help="Predict fair price from one listing URL.")
-    predict_parser.add_argument("site", choices=["autovit"], help="Listing site")
+    predict_parser.add_argument("site", choices=["autovit", "mobilede"], help="Listing site")
     predict_parser.add_argument("url", help="Listing URL")
     predict_parser.add_argument("--model-bundle", required=True, type=Path, help="Path to saved model bundle (.joblib)")
     predict_parser.add_argument("--threshold-percent", type=float, default=15.0, help="Percent threshold for fair / too low / too high verdict")
+    predict_parser.add_argument(
+        "--ensemble-method",
+        choices=["inverse_mae", "inverse_mae_with_agreement"],
+        default="inverse_mae_with_agreement",
+        help="How to weight model predictions for the final price",
+    )
+    predict_parser.add_argument("--similarity-csv", type=Path, default=Path("data/autovit_xl.csv"), help="CSV dataset used to suggest similar listings")
+    predict_parser.add_argument("--similar-limit", type=int, default=5, help="How many similar listings to return")
 
     return parser
 
@@ -151,6 +159,9 @@ def main() -> None:
             url=args.url,
             model_bundle_path=args.model_bundle,
             threshold_percent=args.threshold_percent,
+            similarity_csv_path=args.similarity_csv,
+            similar_limit=args.similar_limit,
+            ensemble_method=args.ensemble_method,
         )
         print(json.dumps(prediction.to_dict(), ensure_ascii=False, indent=2))
         return

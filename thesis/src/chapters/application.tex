@@ -1,0 +1,119 @@
+\chapter{Arhitectura aplicației}
+\label{chapter:application}
+
+\section{Vedere de ansamblu}
+\label{sec:app-overview}
+
+\project\ este implementată ca aplicație web monolitică ușoară. Backend-ul FastAPI servește atât API-ul, cât și fișierele statice ale interfeței web. Această alegere simplifică deployment-ul, deoarece nu este necesar un server separat pentru frontend. Utilizatorul accesează aceeași aplicație pentru autentificare, introducerea linkului și vizualizarea rezultatului.
+
+Componentele principale sunt:
+
+\begin{itemize}
+    \item modulul de scraping, responsabil de extragerea datelor din linkuri \autovit\ și \mobilede;
+    \item modulul de normalizare, care transformă datele brute în câmpuri model-ready;
+    \item modulul de antrenare, care produce bundle-ul \texttt{best\_model.joblib}, metrici și grafice;
+    \item modulul de inferență, care aplică modelele pe un anunț live;
+    \item API-ul FastAPI, care expune rutele de autentificare, predicție, istoric și artefacte;
+    \item interfața web, scrisă în HTML, CSS și JavaScript;
+    \item baza de date SQLite pentru conturi, sesiuni și istoric.
+\end{itemize}
+
+\labelindexref{Figura}{fig:system-architecture} prezintă arhitectura logică a aplicației. Separarea dintre date, modele, API și interfață permite rularea locală pentru dezvoltare și rularea în cloud cu aceleași variabile de mediu.
+
+\fig[width=0.92\textwidth]{src/img/carvaluator/system_architecture.png}{fig:system-architecture}{Arhitectura sistemului \project}
+
+\section{Backend FastAPI}
+\label{sec:app-backend}
+
+FastAPI a fost ales deoarece permite definirea rapidă a rutelor HTTP și a schemelor de request prin modele Pydantic \cite{fastapi_docs}. În proiect, endpoint-ul principal este \texttt{POST /predict}. El primește site-ul, linkul anunțului, pragul de toleranță, metoda de combinare a modelelor și numărul de anunțuri similare cerute.
+
+\begin{table}[htb]
+    \centering
+    \caption{Rute principale ale aplicației}
+    \label{tab:api-routes}
+    \begin{tabular}{lll}
+        \toprule
+        Rută & Metodă & Rol \\
+        \midrule
+        \texttt{/} & GET & Servește interfața web \\
+        \texttt{/health} & GET & Verifică existența modelului și a datasetului \\
+        \texttt{/auth/register} & POST & Creează cont utilizator \\
+        \texttt{/auth/login} & POST & Autentifică utilizatorul \\
+        \texttt{/auth/me} & GET & Returnează contul curent \\
+        \texttt{/auth/logout} & POST & Șterge sesiunea curentă \\
+        \texttt{/predict} & POST & Analizează un anunț și salvează istoricul \\
+        \texttt{/history} & GET & Listează analizele contului \\
+        \texttt{/history} & DELETE & Șterge istoricul contului \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Rutele verifică utilizatorul curent printr-un cookie HTTP-only. Această alegere reduce riscul ca tokenul de sesiune să fie citit direct de JavaScript. Pentru deployment HTTPS, cookie-ul poate fi marcat ca secure prin variabila de mediu \texttt{CARVALUATOR\_COOKIE\_SECURE}.
+
+\section{Autentificare și istoric}
+\label{sec:app-auth}
+
+Aplicația permite crearea unui cont cu email, username și parolă. Parola nu este salvată în clar. Ea este transformată într-un hash PBKDF2 cu salt, iar baza de date stochează doar rezultatul necesar verificării. Sesiunile sunt salvate separat și au termen de expirare.
+
+Fiecare predicție reușită este salvată în istoricul utilizatorului. Istoricul include titlul anunțului, linkul, prețul publicat, prețul estimat, verdictul și imaginea, atunci când aceasta este disponibilă. Utilizatorul poate șterge un element individual sau întregul istoric. Această funcționalitate a fost introdusă pentru a evita aglomerarea interfeței după mai multe teste.
+
+\section{Fluxul unei predicții}
+\label{sec:app-predict-flow}
+
+Atunci când utilizatorul introduce un link, aplicația parcurge următorii pași:
+
+\begin{enumerate}
+    \item validează sesiunea utilizatorului;
+    \item identifică sursa linkului, \autovit\ sau \mobilede;
+    \item extrage detaliile anunțului folosind scraperul corespunzător;
+    \item normalizează câmpurile într-un rând compatibil cu modelul;
+    \item încarcă bundle-ul de modele din calea configurată;
+    \item calculează predicțiile individuale ale modelelor;
+    \item calculează predicția finală ponderată;
+    \item compară prețul publicat cu estimarea și produce verdictul;
+    \item caută anunțuri similare în CSV-ul configurat;
+    \item salvează rezultatul în istoricul contului și îl returnează către interfață.
+\end{enumerate}
+
+Acest flux separă clar inferența de scraping. Dacă un anunț nu poate fi extras deoarece site-ul blochează cererea sau linkul a expirat, API-ul întoarce o eroare explicită. Dacă modelul lipsește, ruta \texttt{/health} indică problema.
+
+\section{Interfața web}
+\label{sec:app-frontend}
+
+Interfața este în limba română și urmărește să fie cât mai directă. Pagina principală prezintă mesajul „CarValuator: deal or scam?”, un câmp pentru link, controale pentru metoda de combinare și toleranță, apoi rezultatul analizei. Nu sunt afișate elemente decorative inutile. Utilizatorul vede doar funcționalitățile relevante: autentificare, link, stare de încărcare, verdict, estimări, grafice de performanță și istoricul contului.
+
+În timpul analizei este afișată o animație de încărcare, deoarece scraping-ul live poate dura câteva secunde. Această animație este importantă pentru experiența utilizatorului: fără feedback vizual, aplicația ar părea blocată.
+
+Interfața include mod întunecat și mod luminos. Alegerea este memorată local, iar designul folosește contraste puternice și carduri clare. Rezultatul afișează imaginea principală a anunțului, atunci când scraperul o poate identifica. Pentru \mobilede, această parte a necesitat filtrare suplimentară pentru a evita afișarea bannerelor dealerilor în locul fotografiei vehiculului.
+
+\section{Anunțuri similare}
+\label{sec:app-similar}
+
+Sugestiile de anunțuri similare sunt calculate din CSV-ul de antrenare sau din datasetul configurat pentru similaritate. Un anunț este considerat similar dacă are aceeași marcă, același model sau caracteristici apropiate, precum an, kilometraj, putere și combustibil. Scopul nu este să producă o predicție suplimentară, ci să ofere utilizatorului exemple concrete din piață.
+
+În practică, sugestiile sunt utile pentru verificarea intuitivă a verdictului. Dacă aplicația estimează că un preț este prea mare, utilizatorul poate vedea anunțuri similare cu prețuri mai mici. Dacă estimează că prețul este prea mic, utilizatorul poate observa că alte anunțuri comparabile sunt semnificativ mai scumpe.
+
+\section{Artefacte de model și grafice}
+\label{sec:app-artifacts}
+
+Training-ul produce grafice PNG, iar API-ul le servește prin ruta \texttt{/model-artifacts/\{filename\}}. Interfața afișează cel puțin graficul de performanță pe modele și graficul preț real față de preț estimat. Aceste grafice nu sunt necesare pentru un cumpărător grăbit, dar sunt utile pentru transparență și pentru demonstrația academică.
+
+\section{Configurare și deployment}
+\label{sec:app-deployment}
+
+Aplicația este configurabilă prin variabile de mediu. Cele mai importante sunt:
+
+\begin{itemize}
+    \item \texttt{CARVALUATOR\_MODEL\_BUNDLE}, calea către bundle-ul de modele;
+    \item \texttt{CARVALUATOR\_SIMILARITY\_CSV}, calea către datasetul de anunțuri similare;
+    \item \texttt{CARVALUATOR\_AUTH\_DB}, calea către baza SQLite pentru conturi și istoric;
+    \item \texttt{CARVALUATOR\_API\_HOST} și \texttt{CARVALUATOR\_API\_PORT}, folosite la rularea locală.
+\end{itemize}
+
+În cloud, aplicația citește variabila \texttt{PORT}, conform practicilor platformelor precum Render \cite{render_docs}.
+
+Pentru Render a fost adăugat un fișier \texttt{render.yaml}. Acesta definește build command-ul, start command-ul, calea către model și calea către datasetul de similaritate. Aplicația pornește prin \texttt{python -m carvaluator\_scraper.api}, se leagă la \texttt{0.0.0.0} și citește portul din variabila \texttt{PORT}, așa cum cer serviciile web Render \cite{render_docs}. Deoarece modelele complete pot fi foarte mari, a fost creat și un script de pregătire a artefactelor de deploy. Scriptul copiază modelul, CSV-ul și graficele într-un folder \texttt{deploy\_artifacts}. În configurația curentă, artefactul comprimat \texttt{best\_model.joblib} are aproximativ 204 MB, iar datasetul de similaritate este \texttt{combined\_reader\_20260606.csv}.
+
+Dimensiunea modelului este o limitare practică pentru deployment prin repository Git obișnuit. Pentru o publicare stabilă, artefactele mari ar trebui gestionate prin Git LFS, un release asset, stocare externă sau printr-un build step care le descarcă dintr-un spațiu controlat. În prototip, scriptul \texttt{scripts/prepare-render-artifacts.ps1} standardizează structura locală necesară pentru deployment și reduce riscul de căi configurate greșit.
+
+Pentru un demo gratuit, baza de date de conturi poate fi plasată în \texttt{/tmp}. Pentru un deployment persistent, este recomandat un disc persistent sau un serviciu de baze de date separat. Această distincție este importantă deoarece istoricul utilizatorilor nu trebuie pierdut într-o variantă publică stabilă.

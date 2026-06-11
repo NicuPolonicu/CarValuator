@@ -76,6 +76,7 @@ TRANSMISSION_MAP = {
 
 BODY_TYPE_MAP = {
     "masina-mica": "small_car",
+    "autovehicul-mic": "small_car",
     "mini": "small_car",
     "suv": "suv",
     "sedan": "sedan",
@@ -102,6 +103,11 @@ PRICE_INDICATOR_MAP = {
     "hoher-preis": "high",
     "erhohter-preis": "high",
     "ohne-bewertung": None,
+    "pret-foarte-bun": "low",
+    "pret-bun": "low",
+    "pret-corect": "fair",
+    "pret-ridicat": "high",
+    "pret-mare": "high",
 }
 
 SELLER_TYPE_MAP = {

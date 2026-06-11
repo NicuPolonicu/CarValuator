@@ -3,9 +3,20 @@ services:
     name: carvaluator
     runtime: python
     plan: free
-    buildCommand: pip install -e .
-    startCommand: carvaluator-api
+    region: frankfurt
+    buildCommand: pip install --upgrade pip && pip install -e .
+    startCommand: python -m carvaluator_scraper.api
     healthCheckPath: /health
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
       - key: CARVALUATOR_MODEL_BUNDLE
-        value: data/model_results_log/best_model.joblib
+        value: deploy_artifacts/model_results/best_model.joblib
+      - key: CARVALUATOR_SIMILARITY_CSV
+        value: deploy_artifacts/datasets/combined_reader_20260606.csv
+      - key: CARVALUATOR_AUTH_DB
+        value: /tmp/carvaluator_users.db
+      - key: CARVALUATOR_COOKIE_SECURE
+        value: "1"
+      - key: CARVALUATOR_SESSION_DAYS
+        value: "7"

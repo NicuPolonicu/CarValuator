@@ -1,0 +1,58 @@
+\chapter{Studiu de piață și abordări existente}
+\label{chapter:market}
+
+\section{Evoluția pieței second-hand}
+\label{sec:market-growth}
+
+Motivația proiectului este susținută de dimensiunea și dinamica pieței auto second-hand. În România, segmentul mașinilor second-hand din import a ajuns în 2024 la 344486 de unități înmatriculate, față de 309876 în 2023 și 325062 în 2022, conform unei analize publicate pe baza datelor DGCPI \cite{revistabiz_auto_2024}. Aceeași sursă indică și faptul că reînmatriculările interne au depășit 710000 de unități în 2024, cel mai ridicat nivel din ultimii șase ani. Aceste valori arată că decizia de cumpărare a unei mașini second-hand nu este o situație izolată, ci o problemă frecventă pentru cumpărătorii români.
+
+La nivel european, literatura instituțională confirmă importanța pieței vehiculelor rulate. Un raport al Joint Research Centre arată că, în cele mai mari piețe auto din UE, mașinile noi reprezintă doar o parte din vânzările anuale totale, iar înțelegerea pieței second-hand este necesară pentru analiza flotei auto și a tranziției către vehicule mai noi sau mai eficiente \cite{jrc_used_vehicle_market}. Același raport evidențiază și dificultatea colectării unor date armonizate despre vehiculele rulate, ceea ce justifică folosirea unor surse publice și a unor pipeline-uri de normalizare în proiecte aplicate.
+
+\section{Autovit}
+\label{sec:market-autovit}
+
+\autovit\ oferă deja mecanisme de evaluare a prețului. Pagina oficială de evaluare menționează că instrumentul folosește detaliile esențiale ale vehiculului, compară mașina cu vehicule similare de pe platformă și calculează un interval de preț estimat \cite{autovit_evaluare}. Aceeași pagină indică peste 275000 de anunțuri utilizate pentru calcularea estimării și precizează că modelul este antrenat succesiv la fiecare două săptămâni, pentru a reflecta schimbările pieței \cite{autovit_evaluare}.
+
+Autovit publică și explicații mai generale despre evaluarea auto online. Într-un articol de blog, platforma menționează că sunt analizate informații despre vehicul și sunt comparate anunțuri similare publicate în ultimele 12 luni \cite{autovit_evaluare_blog}. Acest detaliu este important pentru poziționarea proiectului \project: indicatorul Autovit este foarte util în interiorul platformei, dar este legat de datele și regulile platformei respective.
+
+În anunțuri, indicatorul Autovit are rol de semnal rapid pentru cumpărător, însă aplicația \project\ urmărește o experiență diferită. Utilizatorul introduce un link, primește predicții de la mai multe modele, poate ajusta toleranța verdictului și vede exemple similare dintr-un dataset combinat. În plus, aplicația salvează istoricul analizelor pe cont, ceea ce transformă verificarea într-un proces comparativ.
+
+\section{mobile.de}
+\label{sec:market-mobilede}
+
+\mobilede\ include la rândul său un indicator de preț. Documentația Seller API precizează că platforma poate returna un price rating pentru un vehicul și că oferta este evaluată prin analizarea unei game largi de date despre vehicul și compararea cu oferte similare \cite{mobilede_seller_api}. Răspunsul include o etichetă, de exemplu \texttt{GOOD\_PRICE}, iar documentația explică faptul că etichetele descriu poziția prețului față de vehicule similare.
+
+Documentația arată și limitele calculului. Price rating-ul este disponibil pentru categoria \texttt{Car}, nu este disponibil pentru mașini noi, vehicule avariate sau prea vechi, iar în cazul anumitor configurații poate lipsi din cauza datelor insuficiente \cite{mobilede_seller_api}. Pentru dealeri, mobile.de oferă și un Insights API care compară listările cu vehicule similare și expune metrici de performanță ale anunțurilor, dar accesul este limitat la parteneri din programul de date al platformei \cite{mobilede_insights_api}.
+
+Prin urmare, \mobilede\ are un sistem matur de indicatori interni, dar acesta nu este complet transparent pentru un utilizator extern și nu poate fi folosit liber de o aplicație academică fără acces partener. \project\ nu încearcă să reproducă formula internă, ci construiește un model propriu pe date colectate public și documentează explicit limitările scraping-ului.
+
+\section{Poziționarea soluției propuse}
+\label{sec:market-positioning}
+
+Soluțiile existente sunt integrate în platformele comerciale și beneficiază de acces la date interne. Acesta este un avantaj major. În același timp, ele sunt orientate către propria platformă și nu oferă utilizatorului control asupra pragului de verdict sau asupra metodei de combinare a modelelor.
+
+\project\ este poziționat ca prototip academic independent. El nu concurează direct cu modelele comerciale, ci demonstrează un flux complet: colectare de date, normalizare, selecție statistică, antrenare ML, aplicație web, autentificare, istoric și deployment. Diferențele principale sunt sintetizate în \labelindexref{Tabelul}{tab:market-comparison}.
+
+\begin{table}[htb]
+    \centering
+    \caption{Comparație între abordări}
+    \label{tab:market-comparison}
+    \begin{tabular}{p{3cm}p{3.2cm}p{3.2cm}p{3.2cm}}
+        \toprule
+        Criteriu & Autovit & mobile.de & \project \\
+        \midrule
+        Sursă date & Date interne Autovit & Date interne mobile.de & Date publice colectate prin scraping \\
+        Domeniu & Platforma Autovit & Platforma mobile.de & Linkuri Autovit și mobile.de \\
+        Metodă publicată & Comparație cu anunțuri similare și model reantrenat periodic & Comparație cu oferte similare și price rating API & Modele ML antrenate local, cu metrici și grafice \\
+        Control utilizator & Limitat & Limitat & Toleranță și metodă de ponderare configurabile \\
+        Transparență în aplicație & Indicator scurt & Indicator scurt & Predicții individuale, medie ponderată, anunțuri similare \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Riscuri și limite ale comparației}
+\label{sec:market-risks}
+
+Comparația cu Autovit și \mobilede\ trebuie interpretată cu prudență. Platformele comerciale folosesc probabil date interne mai bogate, inclusiv semnale care nu sunt disponibile prin scraping public. De asemenea, indicatorii lor pot fi calculați numai pentru anunțuri care respectă anumite condiții de recență, stare și completitudine. În schimb, \project\ lucrează cu un snapshot academic și cu date parțial incomplete.
+
+Acest lucru nu invalidează proiectul, ci îi definește scopul. Lucrarea nu afirmă că prototipul depășește sistemele comerciale, ci că un flux reproductibil de scraping și machine learning poate oferi utilizatorului o verificare suplimentară, explicabilă și independentă de o singură platformă.

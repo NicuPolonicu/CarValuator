@@ -1,0 +1,27 @@
+Lucrare de diplomă CarValuator
+==============================
+
+Acest folder conține lucrarea LaTeX pentru proiectul CarValuator, construită pe template-ul `cs-pub-ro/templates`, varianta `theses/diploma`.
+
+Structură principală:
+
+* `thesis.tex`: fișierul principal al lucrării.
+* `thesis.cs.pub.ro.cls`: clasa LaTeX din template, localizată pentru română.
+* `src/global.tex`: titlul, autorul și coordonatorul.
+* `src/main.tex`: lista capitolelor incluse.
+* `src/chapters`: capitolele lucrării.
+* `src/img/carvaluator`: graficele generate din experimentele ML.
+* `src/main.bib`: bibliografia BibTeX.
+
+Pentru compilare, instalați o distribuție LaTeX, de exemplu MiKTeX sau TeX Live, apoi rulați din acest folder:
+
+```powershell
+pdflatex thesis.tex
+bibtex thesis
+makeindex thesis.nlo -s nomencl.ist -o thesis.nls
+pdflatex thesis.tex
+makeindex thesis.idx
+pdflatex thesis.tex
+```
+
+Înainte de predare, completați în `src/global.tex` numele coordonatorului științific și verificați dacă numele autorului este scris exact în forma cerută de facultate.

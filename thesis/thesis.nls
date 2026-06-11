@@ -1,0 +1,13 @@
+
+\begin{thenomenclature} 
+\nomgroup{A}
+  \item [{API}]\begingroup interfață de programare a aplicațiilor\nomeqref {1.0}\nompageref{1}
+  \item [{CSV}]\begingroup valori separate prin virgulă\nomeqref {1.0}\nompageref{1}
+  \item [{JSONL}]\begingroup format JSON pe linii\nomeqref {1.0}\nompageref{1}
+  \item [{KNN}]\begingroup metoda celor mai apropiați vecini\nomeqref {1.0}\nompageref{1}
+  \item [{MAE}]\begingroup eroare absolută medie\nomeqref {1.0}\nompageref{1}
+  \item [{ML}]\begingroup învățare automată\nomeqref {1.0}\nompageref{1}
+  \item [{RMSE}]\begingroup rădăcina erorii pătratice medii\nomeqref {1.0}\nompageref{1}
+  \item [{SVR}]\begingroup regresie cu vectori suport\nomeqref {1.0}\nompageref{1}
+
+\end{thenomenclature}

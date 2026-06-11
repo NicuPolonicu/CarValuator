@@ -1,0 +1,71 @@
+\chapter{Dificultăți, limitări și concluzii}
+\label{chapter:conclusions}
+
+\section{Dificultăți întâlnite}
+\label{sec:conclusions-difficulties}
+
+Dezvoltarea proiectului a fost mai dificilă în zona datelor decât în zona modelelor. Modelele pot fi înlocuite și comparate relativ ușor odată ce există un CSV curat. În schimb, obținerea unui set de date suficient de mare și suficient de coerent a necesitat multe iterații.
+
+Pentru \autovit, principala dificultate a fost variabilitatea câmpurilor. Nu toate anunțurile includ aceleași date, iar unele informații sunt afișate în forme diferite. De exemplu, kilometrajul, puterea sau versiunea pot apărea ca text formatat, iar anumite câmpuri pot lipsi complet. În plus, anunțurile pot fi duplicate, promovate sau republicate.
+
+Pentru \mobilede, dificultățile au fost mai severe. Site-ul folosește mecanisme de protecție care pot bloca accesul automat. În unele teste, cererile au returnat erori 401, 403 sau 429. În alte teste, pagina randată nu conținea datele așteptate sau afișa conținut intermediar. Integrarea linkurilor de detaliu a necesitat tratarea variantelor localizate, iar extragerea imaginii corecte a necesitat filtrarea imaginilor de dealer. O soluție experimentală care a funcționat pentru creșterea setului de date a fost citirea paginilor SEO publice printr-un format Markdown intermediar, urmată de parsare și deduplicare.
+
+O dificultate separată a fost legată de predicțiile prea apropiate între mașini diferite. Aceasta a fost observată în testarea manuală a aplicației, când modele precum SVR sau KNN întorceau valori foarte asemănătoare pentru anunțuri cu prețuri reale mult diferite. Problema a indicat că pipeline-ul trebuia îmbunătățit prin date mai multe, transformare logaritmică, selecție de caracteristici și medie ponderată între modele.
+
+\begin{table}[htb]
+    \centering
+    \caption{Dificultăți și soluții aplicate}
+    \label{tab:difficulties}
+    \begin{tabular}{p{4cm}p{5cm}p{4cm}}
+        \toprule
+        Dificultate & Efect & Soluție aplicată \\
+        \midrule
+        Structură HTML instabilă & Câmpuri lipsă sau extrase greșit & Parsare tolerantă și păstrarea datelor brute \\
+        Duplicate în pagini de căutare & Supra-reprezentarea unor anunțuri & Chei exacte și chei fuzzy \\
+        Blocări \mobilede & Dataset inițial mic și scraping nesigur & Headere de browser, fallback Playwright, snapshot prin pagini SEO Markdown \\
+        Imagini greșite \mobilede & Afișare banner dealer în locul mașinii & Prioritizarea galeriei vehiculului \\
+        Predicții prea uniforme & Verdict slab pentru mașini diferite & Log-preț, set mai mare, medie ponderată \\
+        Artefacte mari de model & Deployment greu pe GitHub și Render & Compresie joblib și folder de artefacte \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Limitări}
+\label{sec:conclusions-limitations}
+
+Prima limitare este dimensiunea și compoziția setului de date. Deși setul final are mii de anunțuri, el este încă dominat de \autovit. Pentru \mobilede, volumul a crescut semnificativ prin metoda Markdown, dar câmpurile sunt mai incomplete și nu justifică încă un model separat de încredere. O versiune viitoare ar trebui să colecteze date \mobilede\ prin acces oficial la API, căutări filtrate la intervale controlate sau un mecanism manual de export dacă scraping-ul automat rămâne blocat.
+
+A doua limitare este lipsa unor caracteristici importante. Starea tehnică, istoricul accidentelor, dotările exacte, reviziile, numărul de proprietari și starea anvelopelor nu sunt disponibile consecvent. Aceste informații pot schimba mult prețul, dar nu pot fi deduse sigur din câmpurile actuale.
+
+A treia limitare este faptul că modelele învață din prețuri cerute, nu din prețuri tranzacționate. Dacă vânzătorii publică frecvent prețuri negociabile, modelul va învăța piața anunțurilor, nu piața tranzacțiilor reale. Această limitare nu poate fi eliminată fără acces la date de vânzare efectivă.
+
+A patra limitare este dependența aplicației de site-uri externe. Dacă \autovit\ sau \mobilede\ schimbă structura paginii, schimbă endpoint-urile sau blochează cererile cloud, predicția din link poate eșua. Pentru o aplicație publică, ar fi necesar un fallback prin formular manual, unde utilizatorul introduce marca, modelul, anul, kilometrajul și restul caracteristicilor.
+
+\section{Concluzii}
+\label{sec:conclusions-final}
+
+Lucrarea a demonstrat că o aplicație web pentru evaluarea prețurilor autoturismelor second-hand poate fi construită pornind de la date publice colectate automat. Sistemul rezultat include scraping, normalizare, deduplicare, selecție statistică de caracteristici, antrenare de modele ML și interfață web cu autentificare și istoric.
+
+Rezultatele experimentale sunt încurajatoare. Pe setul combinat extins, cel mai bun model a obținut un scor \(R^2\) de aproximativ 0.923, iar eroarea absolută medie a celui mai bun model după MAE a fost de aproximativ 2696 EUR. Aceste valori sunt potrivite pentru un prototip academic și pentru filtrare preliminară, dar nu justifică folosirea aplicației ca unic criteriu de cumpărare.
+
+Un rezultat important al proiectului este faptul că aplicația nu ascunde complexitatea modelării. Utilizatorul vede estimările mai multor modele, poate schimba metoda de combinare și poate ajusta toleranța verdictului. Această transparență este utilă deoarece piața auto este zgomotoasă, iar un singur număr poate fi înșelător.
+
+\section{Direcții viitoare}
+\label{sec:conclusions-future}
+
+Prima direcție viitoare este extinderea datasetului. Pentru acuratețe mai bună, este necesară colectarea de date pe mai multe filtre: marcă, model, interval de preț, an și combustibil. O singură căutare largă produce multe duplicate și nu acoperă uniform piața. În plus, aplicația ar putea accepta și alte platforme relevante pentru România, de exemplu OLX Auto, pentru a reduce dependența de două surse și pentru a acoperi mai bine anunțurile locale.
+
+A doua direcție este îmbunătățirea suportului \mobilede. O soluție robustă ar putea combina scraping prudent, cache local, import manual de fișiere exportate și formulare de fallback. Într-un serviciu public, dependența de scraping live trebuie redusă.
+
+A treia direcție este adăugarea unor modele moderne de boosting, precum XGBoost, LightGBM sau CatBoost. Aceste modele sunt des folosite pentru date tabulare și ar putea îmbunătăți rezultatele, mai ales dacă datasetul crește.
+
+A patra direcție este explicabilitatea. Aplicația ar putea afișa factorii care au influențat cel mai mult estimarea: kilometraj mare, model premium, an recent, putere mare sau lipsa unor date importante. Această funcționalitate ar ajuta utilizatorul să înțeleagă verdictul, nu doar să îl accepte.
+
+A cincea direcție este transformarea aplicației într-un serviciu complet deployat. Configurația Render există, dar o variantă stabilă ar trebui să folosească stocare persistentă pentru conturi, cache pentru predicții, monitorizare pentru erorile de scraping și o strategie mai bună pentru artefactele mari de model, precum Git LFS sau stocare externă.
+
+\section{Încheiere}
+\label{sec:conclusions-closing}
+
+\project\ arată că un proiect de data science aplicat nu se reduce la alegerea unui model. Datele, normalizarea, verificarea, interfața și limitele operaționale sunt la fel de importante. În această lucrare, provocarea centrală nu a fost doar să prezicem un preț, ci să construim un flux complet care pornește de la un link real și ajunge la o explicație utilă pentru utilizator.
+
+Prin combinația dintre scraping, învățare automată și aplicație web, proiectul oferă o bază solidă pentru dezvoltări viitoare și pentru o demonstrație practică în cadrul lucrării de diplomă.

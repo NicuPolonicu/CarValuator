@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import json
 import re
+from time import sleep
 from typing import Any
+from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from carvaluator_scraper.models import CarListing
@@ -22,6 +24,10 @@ NEXT_DATA_RE = re.compile(
 )
 
 
+class AutovitFetchError(RuntimeError):
+    pass
+
+
 class AutovitScraper:
     source = "autovit"
 
@@ -33,9 +39,23 @@ class AutovitScraper:
         self.timeout = timeout
 
     def _fetch_html(self, url: str) -> str:
-        request = Request(url, headers={"User-Agent": self.user_agent})
-        with urlopen(request, timeout=self.timeout) as response:
-            return response.read().decode("utf-8", errors="replace")
+        headers = {
+            "User-Agent": self.user_agent,
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "ro-RO,ro;q=0.9,en-US;q=0.8,en;q=0.7",
+            "Connection": "close",
+        }
+        last_error: Exception | None = None
+        for attempt in range(3):
+            request = Request(url, headers=headers)
+            try:
+                with urlopen(request, timeout=self.timeout) as response:
+                    return response.read().decode("utf-8", errors="replace")
+            except (HTTPError, URLError, TimeoutError, OSError) as exc:
+                last_error = exc
+                if attempt < 2:
+                    sleep(0.75 * (attempt + 1))
+        raise AutovitFetchError(f"Autovit could not be reached for this listing: {last_error}") from last_error
 
     def _extract_next_data(self, html: str) -> dict[str, Any]:
         match = NEXT_DATA_RE.search(html)

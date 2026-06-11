@@ -1,0 +1,38 @@
+\documentclass{thesis.cs.pub.ro}
+\makeindex
+\begin{document}
+
+\input{src/global}
+
+\begin{frontmatter} % roman numbering
+
+%\maketitle
+\input{template/titlepage.ro}
+
+\begin{abstract}
+\input{src/base/abstract}
+\end{abstract}
+
+\input{template/contents.pages}
+
+\printabbrev
+
+\end{frontmatter} % end roman numbering
+
+% Compact variant used only for thesis_small.pdf.
+\newgeometry{top=2.6cm, bottom=2.6cm, left=2.8cm, right=2.4cm}
+\small
+\setstretch{1.08}
+\setlength{\parskip}{0.35em}
+
+\input{src/main}
+
+\appendix
+\input{src/appendix/index}
+
+\bibliography{src/main}
+\bibliographystyle{plain}
+
+\printindex
+
+\end{document}

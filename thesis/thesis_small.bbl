@@ -1,0 +1,131 @@
+\begin{thebibliography}{10}
+
+\bibitem{autovit_evaluare_blog}
+{Autovit.ro}.
+\newblock Evaluare autoturism: cum calculezi valoarea corectă a mașinii tale.
+\newblock
+  \url{https://www.autovit.ro/blog/evaluare-autoturism-cum-calculezi-valoarea-corecta-masinii-tale/},
+  2022.
+
+\bibitem{autovit_evaluare}
+{Autovit.ro}.
+\newblock Evaluare auto online - calculator evaluare gratuită a mașinii.
+\newblock \url{https://www.autovit.ro/evaluarea-masinii}, 2026.
+
+\bibitem{breiman2001random}
+Leo Breiman.
+\newblock Random forests.
+\newblock {\em Machine Learning}, 45(1):5--32, 2001.
+
+\bibitem{cramer1946mathematical}
+Harald Cram{\'e}r.
+\newblock {\em Mathematical Methods of Statistics}.
+\newblock Princeton University Press, 1946.
+
+\bibitem{cs_pub_templates}
+{cs-pub-ro}.
+\newblock Latex templates repository.
+\newblock \url{https://github.com/cs-pub-ro/templates}, 2026.
+
+\bibitem{fastapi_docs}
+{FastAPI}.
+\newblock Fastapi documentation.
+\newblock \url{https://fastapi.tiangolo.com/}, 2026.
+
+\bibitem{friedman2001greedy}
+Jerome~H. Friedman.
+\newblock Greedy function approximation: A gradient boosting machine.
+\newblock {\em The Annals of Statistics}, 29(5):1189--1232, 2001.
+
+\bibitem{geurts2006extremely}
+Pierre Geurts, Damien Ernst, and Louis Wehenkel.
+\newblock Extremely randomized trees.
+\newblock {\em Machine Learning}, 63(1):3--42, 2006.
+
+\bibitem{jina_reader}
+{Jina AI}.
+\newblock Jina reader.
+\newblock \url{https://r.jina.ai/}, 2026.
+
+\bibitem{krotov2018webscraping}
+Vlad Krotov and Leiser Silva.
+\newblock Legality and ethics of web scraping.
+\newblock In {\em Twenty-fourth Americas Conference on Information Systems},
+  New Orleans, 2018.
+
+\bibitem{playwright_docs}
+{Microsoft Playwright}.
+\newblock Playwright python documentation.
+\newblock \url{https://playwright.dev/python/docs/intro}, 2026.
+
+\bibitem{mobilede_insights_api}
+{mobile.de}.
+\newblock Insights api documentation.
+\newblock \url{https://services.sandbox.mobile.de/docs/insights-api.html},
+  2026.
+
+\bibitem{mobilede_search_api}
+{mobile.de}.
+\newblock mobile.de search api documentation.
+\newblock \url{https://services.mobile.de/docs/search-api.html}, 2026.
+
+\bibitem{mobilede_seller_api}
+{mobile.de}.
+\newblock Seller api documentation.
+\newblock \url{https://services.mobile.de/docs/seller-api.html}, 2026.
+
+\bibitem{pearson1895correlation}
+Karl Pearson.
+\newblock Notes on regression and inheritance in the case of two parents.
+\newblock {\em Proceedings of the Royal Society of London}, 58:240--242, 1895.
+
+\bibitem{pedregosa2011scikit}
+Fabian Pedregosa, Ga{\"e}l Varoquaux, Alexandre Gramfort, Vincent Michel,
+  Bertrand Thirion, Olivier Grisel, Mathieu Blondel, Peter Prettenhofer, Ron
+  Weiss, Vincent Dubourg, Jake Vanderplas, Alexandre Passos, David Cournapeau,
+  Matthieu Brucher, Matthieu Perrot, and Edouard Duchesnay.
+\newblock Scikit-learn: Machine learning in python.
+\newblock {\em Journal of Machine Learning Research}, 12:2825--2830, 2011.
+
+\bibitem{render_docs}
+{Render}.
+\newblock Render web services documentation.
+\newblock \url{https://render.com/docs/web-services}, 2026.
+
+\bibitem{revistabiz_auto_2024}
+{Revista Biz}.
+\newblock Creștere a pieței auto în 2024. cele mai vândute mărci de
+  mașini noi și second hand.
+\newblock
+  \url{https://www.revistabiz.ro/crestere-a-pietei-auto-in-2024-cele-mai-vandute-marci-de-masini-noi-si-second-hand/},
+  2025.
+
+\bibitem{rosen1974hedonic}
+Sherwin Rosen.
+\newblock Hedonic prices and implicit markets: Product differentiation in pure
+  competition.
+\newblock {\em Journal of Political Economy}, 82(1):34--55, 1974.
+
+\bibitem{sklearn_metrics}
+{scikit-learn}.
+\newblock Metrics and scoring documentation.
+\newblock \url{https://scikit-learn.org/stable/modules/model_evaluation.html},
+  2026.
+
+\bibitem{shearer2000crispdm}
+Colin Shearer.
+\newblock The crisp-dm model: The new blueprint for data mining.
+\newblock {\em Journal of Data Warehousing}, 5(4):13--22, 2000.
+
+\bibitem{smola2004tutorial}
+Alex~J. Smola and Bernhard Sch{\"o}lkopf.
+\newblock A tutorial on support vector regression.
+\newblock {\em Statistics and Computing}, 14(3):199--222, 2004.
+
+\bibitem{jrc_used_vehicle_market}
+Nikiforos Zacharof, Jamil Nur, Dimitrios Kourtesis, Jette Krause, and Georgios
+  Fontaras.
+\newblock A review of the used car market in the european union.
+\newblock Technical report, European Commission, Joint Research Centre, 2025.
+
+\end{thebibliography}

@@ -1,0 +1,77 @@
+\chapter{Fundamentare teoretică și lucrări conexe}
+\label{chapter:background}
+
+\section{Evaluarea prețurilor ca problemă de regresie}
+\label{sec:background-regression}
+
+Estimarea prețului unui autoturism second-hand poate fi formulată ca o problemă de regresie supravegheată. Pentru fiecare anunț există un vector de caracteristici \(x\), format din informații precum anul, kilometrajul, puterea, combustibilul și marca, și o valoare țintă \(y\), reprezentată de prețul publicat. Scopul modelului este să aproximeze o funcție \(f(x)\) care produce o estimare apropiată de \(y\).
+
+Această formulare este inspirată de teoria prețurilor hedonice, unde prețul unui bun diferențiat este explicat prin caracteristicile sale \cite{rosen1974hedonic}. Pentru mașini, caracteristicile tehnice și comerciale au efecte intuitive: o mașină mai nouă este, în general, mai scumpă; un kilometraj mai mare reduce valoarea; o putere mai mare poate crește prețul, dar numai în combinație cu marca, segmentul și vechimea.
+
+Regresia nu poate captura toate elementele care influențează valoarea reală. Starea caroseriei, istoricul accidentelor, calitatea reparațiilor, numărul de proprietari, dotările exacte sau încrederea în vânzător sunt informații greu de extras automat. De aceea, predicția trebuie interpretată ca estimare statistică, nu ca expertiză tehnică.
+
+\section{Modele folosite}
+\label{sec:background-models}
+
+Proiectul compară mai multe familii de modele. Alegerea nu urmărește doar obținerea celui mai bun scor, ci și observarea comportamentului modelelor pe date tabulare reale, incomplete și neuniforme.
+
+SVR, sau Support Vector Regression, este o extensie a mașinilor cu vectori suport pentru probleme de regresie. Modelul caută o funcție cât mai plată care tolerează erori mici în interiorul unui tub definit de parametrul \(\epsilon\), penalizând abaterile mai mari \cite{smola2004tutorial}. În proiect a fost folosit un kernel RBF, util atunci când relația dintre caracteristici și preț este neliniară.
+
+Ridge Regression este o regresie liniară regularizată. Ea oferă un reper simplu și stabil, mai ales când datele conțin multe variabile categorice transformate prin one-hot encoding. Chiar dacă relația reală este neliniară, Ridge poate funcționa surprinzător de bine atunci când există suficiente caracteristici explicative.
+
+KNN Regression estimează prețul prin vecinii cei mai apropiați ai anunțului analizat. Pentru date auto, ideea este intuitivă: o mașină ar trebui comparată cu mașini asemănătoare. Totuși, KNN este sensibil la scalare, la variabile categorice rare și la densitatea datelor în vecinătatea unui exemplu.
+
+Random Forest construiește un ansamblu de arbori de decizie antrenați pe eșantioane diferite și pe subseturi ale caracteristicilor \cite{breiman2001random}. Acest model este robust la neliniarități și interacțiuni, dar poate produce modele mari și poate extrapola slab pentru exemple mult diferite de setul de antrenare.
+
+Extra Trees introduce o randomizare mai puternică în alegerea pragurilor de împărțire, reducând varianța și crescând diversitatea arborilor \cite{geurts2006extremely}. Gradient Boosting construiește arbori secvențial, fiecare încercând să corecteze erorile rundei precedente \cite{friedman2001greedy}. În final, Voting Regressor combină estimările mai multor modele, încercând să reducă dependența de o singură ipoteză.
+
+\section{Transformarea logaritmică a prețului}
+\label{sec:background-log}
+
+Prețurile autoturismelor sunt distribuite asimetric. Majoritatea anunțurilor se află în zona medie a pieței, în timp ce un număr mic de vehicule premium sau foarte noi au prețuri mult mai mari. Dacă modelul este antrenat direct pe preț, exemplele scumpe pot domina funcția de eroare.
+
+Pentru a reduce această problemă, pipeline-ul folosește ținta:
+
+\[
+    y_{log} = \log(1 + y)
+\]
+
+După predicție, valoarea este readusă în EUR folosind:
+
+\[
+    \hat{y} = \exp(\hat{y}_{log}) - 1
+\]
+
+Această transformare are două avantaje. În primul rând, comprimă intervalul valorilor și face erorile relative mai echilibrate. În al doilea rând, reduce tendința modelelor de a supraestima mașinile ieftine sau de a subestima exagerat mașinile foarte scumpe. În evaluarea proiectului, antrenarea pe log-preț a produs predicții mai stabile decât primele încercări pe preț brut.
+
+\section{Selecția caracteristicilor}
+\label{sec:background-feature-selection}
+
+Seturile de date obținute prin scraping conțin multe câmpuri, însă nu toate sunt utile pentru predicție. Unele câmpuri lipsesc frecvent, altele sunt prea specifice, iar altele au legătură slabă cu prețul. Pentru a evita introducerea de zgomot, pipeline-ul aplică o selecție de caracteristici înainte de modelare.
+
+Pentru variabile numerice se folosește corelația Pearson, o măsură clasică a asocierii liniare dintre două variabile \cite{pearson1895correlation}. Pentru variabile categorice, ținta numerică este discretizată în intervale, apoi se aplică un test de tip chi-pătrat. Mărimea efectului este aproximată prin Cramér V, o măsură potrivită pentru tabele de contingență \cite{cramer1946mathematical}.
+
+Selecția nu este tratată ca adevăr absolut. De exemplu, transmisia și tipul de caroserie sunt caracteristici importante în lumea reală, dar în setul combinat disponibil ele apar foarte rar pentru \autovit. Dacă o coloană are puține valori completate, testul statistic poate decide eliminarea ei nu pentru că este irelevantă conceptual, ci pentru că datele curente nu permit estimarea efectului.
+
+\section{Metrici de evaluare}
+\label{sec:background-metrics}
+
+Pentru evaluare sunt folosite trei metrici. RMSE penalizează mai mult erorile mari, fiind util pentru a observa cazurile în care modelul ratează puternic. MAE măsoară eroarea absolută medie și este mai ușor de interpretat în EUR. \(R^2\) exprimă proporția variației țintei explicată de model, comparativ cu o predicție constantă bazată pe medie \cite{sklearn_metrics}.
+
+În contextul aplicației, MAE este deosebit de importantă deoarece utilizatorul gândește în diferențe concrete de bani. O eroare de 3000 EUR poate fi acceptabilă pentru o mașină de 80000 EUR, dar foarte mare pentru una de 7000 EUR. Din acest motiv, verdictul final folosește și un prag procentual configurabil de utilizator.
+
+\section{Web scraping și considerații etice}
+\label{sec:background-scraping}
+
+Web scraping-ul permite colectarea automată a datelor publicate pe pagini web, însă ridică probleme tehnice, legale și etice. Krotov și Silva subliniază că cercetătorii trebuie să analizeze scopul colectării, tipul datelor, impactul asupra site-ului și riscurile de confidențialitate \cite{krotov2018webscraping}.
+
+În proiectul \project, datele au fost folosite în scop academic, iar colectarea a fost limitată la câmpuri publice din anunțuri. Informațiile de contact nu sunt necesare pentru modelare și nu sunt folosite pentru predicție. Scraping-ul a fost rulat cu întârzieri între cereri, iar pipeline-ul păstrează datele brute tocmai pentru a evita repetarea inutilă a solicitărilor către site-uri.
+
+Totuși, există o diferență importantă între un prototip local și un serviciu public. Dacă aplicația este publicată în cloud, fiecare predicție live poate genera o cerere server-side către site-ul anunțului. Acest lucru poate duce la limitări sau blocări, mai ales pentru \mobilede, unde mecanismele anti-automatizare sunt mai agresive.
+
+\section{Tehnologii folosite}
+\label{sec:background-tech}
+
+Implementarea folosește Python și scikit-learn pentru pipeline-ul ML. scikit-learn este o bibliotecă standard pentru învățare automată în Python, cu implementări mature pentru regresie, preprocesare și evaluare \cite{pedregosa2011scikit}. Pentru aplicația web, backend-ul este construit cu FastAPI, un framework modern bazat pe tipuri Python și OpenAPI \cite{fastapi_docs}. Pentru cazurile în care este necesară interacțiunea cu pagini dinamice, proiectul folosește Playwright, care oferă automatizare de browser pentru Python \cite{playwright_docs}.
+
+Pentru deployment a fost pregătită o configurație Render, deoarece serviciile web Render pot porni aplicații Python care se leagă la portul furnizat prin variabila de mediu \texttt{PORT} \cite{render_docs}. Template-ul LaTeX al lucrării provine din repository-ul public \texttt{cs-pub-ro/templates} \cite{cs_pub_templates}.
