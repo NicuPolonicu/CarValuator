@@ -1,46 +1,137 @@
-const form = document.getElementById("predictForm");
-const urlInput = document.getElementById("urlInput");
-const ensembleMethodInput = document.getElementById("ensembleMethodInput");
-const thresholdInput = document.getElementById("thresholdInput");
-const submitButton = document.getElementById("submitButton");
-const exampleButton = document.getElementById("exampleButton");
-const formMessage = document.getElementById("formMessage");
-const resultPanel = document.getElementById("resultPanel");
-const loadingOverlay = document.getElementById("loadingOverlay");
-const loadingMessage = document.getElementById("loadingMessage");
-const themeToggle = document.getElementById("themeToggle");
-const themeToggleLabel = document.getElementById("themeToggleLabel");
-const authPanel = document.getElementById("authPanel");
-const authStatus = document.getElementById("authStatus");
-const authMessage = document.getElementById("authMessage");
-const logoutButton = document.getElementById("logoutButton");
-const loginForm = document.getElementById("loginForm");
-const registerForm = document.getElementById("registerForm");
-const showLoginButton = document.getElementById("showLoginButton");
-const showRegisterButton = document.getElementById("showRegisterButton");
-const loginButton = document.getElementById("loginButton");
-const registerButton = document.getElementById("registerButton");
-const loginIdentifier = document.getElementById("loginIdentifier");
-const loginPassword = document.getElementById("loginPassword");
-const registerEmail = document.getElementById("registerEmail");
-const registerUsername = document.getElementById("registerUsername");
-const registerPassword = document.getElementById("registerPassword");
-const historyPanel = document.getElementById("historyPanel");
-const historyList = document.getElementById("historyList");
-const refreshHistoryButton = document.getElementById("refreshHistoryButton");
-const clearHistoryButton = document.getElementById("clearHistoryButton");
+const $ = (id) => document.getElementById(id);
+
+const elements = {
+  form: $("predictForm"),
+  urlInput: $("urlInput"),
+  ensembleMethodInput: $("ensembleMethodInput"),
+  thresholdInput: $("thresholdInput"),
+  submitButton: $("submitButton"),
+  exampleButton: $("exampleButton"),
+  formMessage: $("formMessage"),
+  resultPanel: $("resultPanel"),
+  loadingOverlay: $("loadingOverlay"),
+  loadingMessage: $("loadingMessage"),
+  themeToggle: $("themeToggle"),
+  themeToggleLabel: $("themeToggleLabel"),
+  authPanel: $("authPanel"),
+  authStatus: $("authStatus"),
+  authMessage: $("authMessage"),
+  logoutButton: $("logoutButton"),
+  loginForm: $("loginForm"),
+  registerForm: $("registerForm"),
+  showLoginButton: $("showLoginButton"),
+  showRegisterButton: $("showRegisterButton"),
+  loginButton: $("loginButton"),
+  registerButton: $("registerButton"),
+  loginIdentifier: $("loginIdentifier"),
+  loginPassword: $("loginPassword"),
+  registerEmail: $("registerEmail"),
+  registerUsername: $("registerUsername"),
+  registerPassword: $("registerPassword"),
+  historyPanel: $("historyPanel"),
+  historyLoginGate: $("historyLoginGate"),
+  historyList: $("historyList"),
+  historyDetailPanel: $("historyDetailPanel"),
+  refreshHistoryButton: $("refreshHistoryButton"),
+  clearHistoryButton: $("clearHistoryButton"),
+  evaluatorPage: $("evaluatorPage"),
+  historyPage: $("historyPage"),
+  explanationsPage: $("explanationsPage"),
+  helpDialog: $("helpDialog"),
+  helpDialogTitle: $("helpDialogTitle"),
+  helpDialogBody: $("helpDialogBody"),
+  helpDialogClose: $("helpDialogClose"),
+};
 
 const exampleUrl = "https://www.autovit.ro/autoturisme/anunt/fiat-fiorino-ID7HMUoe.html";
 const similarLimit = 4;
 const loadingMessages = [
   "Preluam anuntul si extragem datele principale...",
   "Standardizam specificatiile masinii...",
-  "Estimam pretul corect pe baza modelului...",
+  "Comparam estimarile modelelor...",
   "Cautam masini similare in baza de date...",
 ];
 
+const helpContent = {
+  voting: {
+    title: "Cum este combinat pretul final?",
+    body: `
+      <p><strong>Doar MAE</strong> acorda o pondere mai mare modelelor care au avut eroarea medie cea mai mica la testare.</p>
+      <p><strong>MAE + acord</strong> face acelasi lucru, dar reduce si influenta unei estimari care este foarte departe de restul modelelor.</p>
+    `,
+  },
+  tolerance: {
+    title: "Ce este toleranta verdictului?",
+    body: `
+      <p>Toleranta este marja acceptata in jurul pretului estimat. La 10%, un pret aflat cu cel mult 10% peste sau sub estimare este considerat corect.</p>
+      <p>O toleranta mai mica produce verdicte mai stricte.</p>
+    `,
+  },
+  weighted: {
+    title: "Estimarea finala ponderata",
+    body: `
+      <p>Acesta este pretul principal al raportului. Nu este rezultatul unui singur algoritm, ci o combinatie a modelelor disponibile.</p>
+      <p>Modelele cu erori istorice mai mici primesc o influenta mai mare.</p>
+    `,
+  },
+  mae: {
+    title: "MAE",
+    body: "<p>Eroarea medie absoluta, exprimata in EUR. Mai mic este mai bine. Un MAE de 2.500 EUR inseamna o abatere medie de aproximativ 2.500 EUR.</p>",
+  },
+  r2: {
+    title: "R2",
+    body: "<p>Arata cat de bine explica modelul variatia preturilor. Mai aproape de 1 este mai bine, dar nu reprezinta un procent de precizie.</p>",
+  },
+  rmse: {
+    title: "RMSE",
+    body: "<p>Masura a erorii care penalizeaza mai mult greselile foarte mari. Mai mic este mai bine.</p>",
+  },
+  agreement: {
+    title: "Acord intre modele",
+    body: "<p>Arata cat de apropiata este estimarea unui model de centrul estimarilor celorlalte modele. Un acord mic reduce ponderea unei valori izolate.</p>",
+  },
+  similar: {
+    title: "Masini similare",
+    body: "<p>Sunt exemple apropiate din dataset dupa marca, model, an, kilometraj si specificatii. Ele ajuta la verificarea rezultatului, dar nu modifica direct pretul final.</p>",
+  },
+};
+
 let loadingInterval = null;
 let currentUser = null;
+
+function currentRoute() {
+  if (window.location.pathname === "/istoric") {
+    return "history";
+  }
+  if (window.location.pathname === "/explicatii") {
+    return "explanations";
+  }
+  return "evaluator";
+}
+
+function initializeRoute() {
+  const route = currentRoute();
+  elements.evaluatorPage.classList.toggle("is-hidden", route !== "evaluator");
+  elements.historyPage.classList.toggle("is-hidden", route !== "history");
+  elements.explanationsPage.classList.toggle("is-hidden", route !== "explanations");
+
+  const routeNames = {
+    "/": "evaluator",
+    "/istoric": "history",
+    "/explicatii": "explanations",
+  };
+  document.querySelectorAll(".nav-link").forEach((link) => {
+    const normalizedRoute = routeNames[link.dataset.route];
+    link.classList.toggle("is-active", normalizedRoute === route);
+  });
+
+  const titles = {
+    evaluator: "CarValuator",
+    history: "Istoric | CarValuator",
+    explanations: "Explicatii | CarValuator",
+  };
+  document.title = titles[route];
+}
 
 function formatCurrency(value) {
   if (value === null || value === undefined || Number.isNaN(Number(value))) {
@@ -60,12 +151,19 @@ function formatNumber(value) {
   return new Intl.NumberFormat("ro-RO").format(value);
 }
 
+function formatMetric(value, digits = 3) {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) {
+    return "N/A";
+  }
+  return Number(value).toFixed(digits);
+}
+
 function formatPercent(value) {
   if (value === null || value === undefined || Number.isNaN(Number(value))) {
     return "N/A";
   }
   const sign = value > 0 ? "+" : "";
-  return `${sign}${value.toFixed(2)}%`;
+  return `${sign}${Number(value).toFixed(2)}%`;
 }
 
 function formatDateTime(value) {
@@ -83,36 +181,16 @@ function formatDateTime(value) {
 }
 
 function humanizeVerdict(verdict) {
-  if (verdict === "too_low_suspicious") {
-    return "Pret suspect de mic";
-  }
-  if (verdict === "too_high") {
-    return "Pret prea mare";
-  }
-  if (verdict === "fair") {
-    return "Pret corect";
-  }
-  return "Necunoscut";
-}
-
-function inferSiteFromUrl(url) {
-  let host = "";
-  try {
-    host = new URL(url).hostname.toLowerCase();
-  } catch (error) {
-    return null;
-  }
-  if (host.endsWith("autovit.ro")) {
-    return "autovit";
-  }
-  if (host.endsWith("mobile.de")) {
-    return "mobilede";
-  }
-  return null;
+  const mapping = {
+    too_low_suspicious: "Pret suspect de mic",
+    too_high: "Pret prea mare",
+    fair: "Pret corect",
+  };
+  return mapping[verdict] || "Necunoscut";
 }
 
 function humanizeReason(reason) {
-  const map = {
+  const mapping = {
     "same make": "aceeasi marca",
     "same model": "acelasi model",
     "same fuel": "acelasi combustibil",
@@ -122,7 +200,7 @@ function humanizeReason(reason) {
     "power within 20 hp": "putere apropiata",
     "engine within 250 cm3": "motorizare apropiata",
   };
-  return map[reason] || reason;
+  return mapping[reason] || reason;
 }
 
 function humanizeModelName(name) {
@@ -133,7 +211,7 @@ function humanizeModelName(name) {
     random_forest: "Random Forest",
     extra_trees: "Extra Trees",
     gradient_boosting: "Gradient Boosting",
-    voting_ensemble: "Ensemble",
+    voting_ensemble: "Voting Ensemble",
     weighted_average: "Estimare finala ponderata",
   };
   return mapping[name] || name;
@@ -149,6 +227,11 @@ function humanizeWeightingMethod(method) {
   return method || "N/A";
 }
 
+function getEnsembleMethod(data) {
+  const finalEstimate = (data.model_estimates || []).find((item) => item.model === "weighted_average");
+  return finalEstimate?.weighting || data.ensemble_method || null;
+}
+
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -158,50 +241,81 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
+function helpButton(key, label) {
+  return `<button class="help-button" type="button" data-help="${escapeHtml(key)}" aria-label="${escapeHtml(label)}">?</button>`;
+}
+
+function bindHelpButtons(root = document) {
+  root.querySelectorAll("[data-help]").forEach((button) => {
+    if (button.dataset.helpBound === "1") {
+      return;
+    }
+    button.dataset.helpBound = "1";
+    button.addEventListener("click", () => openHelp(button.dataset.help));
+  });
+}
+
+function openHelp(key) {
+  const content = helpContent[key];
+  if (!content) {
+    return;
+  }
+  elements.helpDialogTitle.textContent = content.title;
+  elements.helpDialogBody.innerHTML = content.body;
+  elements.helpDialog.showModal();
+}
+
 function setMessage(message, tone = "") {
-  formMessage.textContent = message;
-  formMessage.className = `form-message${tone ? ` is-${tone}` : ""}`;
+  elements.formMessage.textContent = message;
+  elements.formMessage.className = `form-message${tone ? ` is-${tone}` : ""}`;
 }
 
 function setAuthMessage(message, tone = "") {
-  authMessage.textContent = message;
-  authMessage.className = `form-message${tone ? ` is-${tone}` : ""}`;
+  elements.authMessage.textContent = message;
+  elements.authMessage.className = `form-message${tone ? ` is-${tone}` : ""}`;
 }
 
 function setAuthLoading(isLoading) {
-  loginButton.disabled = isLoading;
-  registerButton.disabled = isLoading;
-  logoutButton.disabled = isLoading;
-  clearHistoryButton.disabled = isLoading;
-  refreshHistoryButton.disabled = isLoading;
+  [
+    elements.loginButton,
+    elements.registerButton,
+    elements.logoutButton,
+    elements.clearHistoryButton,
+    elements.refreshHistoryButton,
+  ].forEach((button) => {
+    button.disabled = isLoading;
+  });
 }
 
 function setLoading(isLoading) {
-  submitButton.disabled = isLoading;
-  exampleButton.disabled = isLoading;
-  submitButton.querySelector(".button-text").textContent = isLoading ? "Se analizeaza..." : "Analizeaza anuntul";
+  elements.submitButton.disabled = isLoading;
+  elements.exampleButton.disabled = isLoading;
+  elements.submitButton.querySelector(".button-text").textContent = isLoading
+    ? "Se analizeaza..."
+    : "Analizeaza anuntul";
 
   if (isLoading) {
     let index = 0;
-    loadingMessage.textContent = loadingMessages[0];
-    loadingOverlay.classList.add("is-visible");
-    loadingOverlay.setAttribute("aria-hidden", "false");
+    elements.loadingMessage.textContent = loadingMessages[0];
+    elements.loadingOverlay.classList.add("is-visible");
+    elements.loadingOverlay.setAttribute("aria-hidden", "false");
     loadingInterval = window.setInterval(() => {
       index = (index + 1) % loadingMessages.length;
-      loadingMessage.textContent = loadingMessages[index];
+      elements.loadingMessage.textContent = loadingMessages[index];
     }, 1300);
-  } else {
-    window.clearInterval(loadingInterval);
-    loadingInterval = null;
-    loadingOverlay.classList.remove("is-visible");
-    loadingOverlay.setAttribute("aria-hidden", "true");
+    return;
   }
+
+  window.clearInterval(loadingInterval);
+  loadingInterval = null;
+  elements.loadingOverlay.classList.remove("is-visible");
+  elements.loadingOverlay.setAttribute("aria-hidden", "true");
 }
 
 function applyTheme(theme) {
   document.body.dataset.theme = theme;
   localStorage.setItem("carvaluator-theme", theme);
-  themeToggleLabel.textContent = theme === "dark" ? "Mod luminos" : "Mod intunecat";
+  elements.themeToggleLabel.textContent = theme === "dark" ? "Mod luminos" : "Mod intunecat";
 }
 
 function initializeTheme() {
@@ -210,37 +324,44 @@ function initializeTheme() {
     applyTheme(stored);
     return;
   }
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  applyTheme(prefersDark ? "dark" : "light");
+  applyTheme(window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
 }
 
 function renderAuthState(user) {
   currentUser = user;
+  const route = currentRoute();
+
   if (user) {
-    authStatus.textContent = `Logat ca ${user.username}`;
-    logoutButton.classList.remove("is-hidden");
-    authPanel.classList.add("is-hidden");
-    historyPanel.classList.remove("is-hidden");
-    submitButton.disabled = false;
-    setMessage("Poti analiza anunturi Autovit sau mobile.de.", "success");
-    loadHistory();
+    elements.authStatus.textContent = `Logat ca ${user.username}`;
+    elements.logoutButton.classList.remove("is-hidden");
+    elements.authPanel.classList.add("is-hidden");
+    elements.historyLoginGate.classList.add("is-hidden");
+    elements.historyPanel.classList.toggle("is-hidden", route !== "history");
+    elements.submitButton.disabled = false;
+    if (route === "evaluator") {
+      setMessage("Poti analiza anunturi Autovit sau mobile.de.", "success");
+    }
+    if (route === "history") {
+      loadHistory();
+    }
     return;
   }
 
-  authStatus.textContent = "Neautentificat";
-  logoutButton.classList.add("is-hidden");
-  authPanel.classList.remove("is-hidden");
-  historyPanel.classList.add("is-hidden");
-  historyList.innerHTML = '<p class="history-empty">Autentifica-te pentru a vedea istoricul analizelor.</p>';
-  submitButton.disabled = false;
+  elements.authStatus.textContent = "Neautentificat";
+  elements.logoutButton.classList.add("is-hidden");
+  elements.authPanel.classList.toggle("is-hidden", route !== "evaluator");
+  elements.historyPanel.classList.add("is-hidden");
+  elements.historyLoginGate.classList.toggle("is-hidden", route !== "history");
+  elements.historyDetailPanel.classList.add("is-hidden");
+  elements.submitButton.disabled = false;
 }
 
 function showAuthMode(mode) {
   const isLogin = mode === "login";
-  loginForm.classList.toggle("is-hidden", !isLogin);
-  registerForm.classList.toggle("is-hidden", isLogin);
-  showLoginButton.classList.toggle("is-active", isLogin);
-  showRegisterButton.classList.toggle("is-active", !isLogin);
+  elements.loginForm.classList.toggle("is-hidden", !isLogin);
+  elements.registerForm.classList.toggle("is-hidden", isLogin);
+  elements.showLoginButton.classList.toggle("is-active", isLogin);
+  elements.showRegisterButton.classList.toggle("is-active", !isLogin);
   setAuthMessage("");
 }
 
@@ -258,14 +379,18 @@ async function checkSession() {
     const response = await fetch("/auth/me", { credentials: "same-origin" });
     if (!response.ok) {
       renderAuthState(null);
-      setMessage("Autentifica-te sau creeaza un cont pentru a analiza anunturi.");
+      if (currentRoute() === "evaluator") {
+        setMessage("Autentifica-te sau creeaza un cont pentru a analiza anunturi.");
+      }
       return;
     }
     const data = await response.json();
     renderAuthState(data.user);
   } catch (error) {
     renderAuthState(null);
-    setMessage("Nu am putut verifica sesiunea. Serverul trebuie pornit pentru login.", "error");
+    if (currentRoute() === "evaluator") {
+      setMessage("Nu am putut verifica sesiunea. Serverul trebuie pornit pentru login.", "error");
+    }
   }
 }
 
@@ -280,15 +405,15 @@ async function submitLogin(event) {
       credentials: "same-origin",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        identifier: loginIdentifier.value.trim(),
-        password: loginPassword.value,
+        identifier: elements.loginIdentifier.value.trim(),
+        password: elements.loginPassword.value,
       }),
     });
     if (!response.ok) {
       throw new Error(await readErrorMessage(response, "Login esuat."));
     }
     const data = await response.json();
-    loginPassword.value = "";
+    elements.loginPassword.value = "";
     renderAuthState(data.user);
     setAuthMessage("");
   } catch (error) {
@@ -309,16 +434,16 @@ async function submitRegister(event) {
       credentials: "same-origin",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        email: registerEmail.value.trim(),
-        username: registerUsername.value.trim(),
-        password: registerPassword.value,
+        email: elements.registerEmail.value.trim(),
+        username: elements.registerUsername.value.trim(),
+        password: elements.registerPassword.value,
       }),
     });
     if (!response.ok) {
       throw new Error(await readErrorMessage(response, "Contul nu a putut fi creat."));
     }
     const data = await response.json();
-    registerPassword.value = "";
+    elements.registerPassword.value = "";
     renderAuthState(data.user);
     setAuthMessage("");
   } catch (error) {
@@ -339,7 +464,9 @@ async function logout() {
     setAuthLoading(false);
     renderAuthState(null);
     showAuthMode("login");
-    setMessage("Te-ai delogat. Autentifica-te pentru a analiza un anunt.");
+    if (currentRoute() === "evaluator") {
+      setMessage("Te-ai delogat. Autentifica-te pentru a analiza un anunt.");
+    }
   }
 }
 
@@ -347,28 +474,44 @@ async function loadHistory() {
   if (!currentUser) {
     return;
   }
-
-  historyList.innerHTML = '<p class="history-empty">Incarcam istoricul...</p>';
+  elements.historyList.innerHTML = '<p class="history-empty">Incarcam istoricul...</p>';
   try {
-    const response = await fetch("/history?limit=20", { credentials: "same-origin" });
+    const response = await fetch("/history?limit=100", { credentials: "same-origin" });
     if (!response.ok) {
       throw new Error(await readErrorMessage(response, "Nu am putut incarca istoricul."));
     }
     const data = await response.json();
     renderHistory(data.items || []);
   } catch (error) {
-    historyList.innerHTML = `<p class="history-empty is-error">${escapeHtml(error.message || "Nu am putut incarca istoricul.")}</p>`;
+    elements.historyList.innerHTML = `<p class="history-empty is-error">${escapeHtml(error.message || "Nu am putut incarca istoricul.")}</p>`;
+  }
+}
+
+async function loadHistoryDetail(historyId) {
+  if (!currentUser || !historyId) {
+    return;
+  }
+  elements.historyDetailPanel.classList.remove("is-hidden");
+  elements.historyDetailPanel.innerHTML = '<p class="history-empty">Incarcam raportul complet...</p>';
+  try {
+    const response = await fetch(`/history/${encodeURIComponent(historyId)}`, {
+      credentials: "same-origin",
+    });
+    if (!response.ok) {
+      throw new Error(await readErrorMessage(response, "Nu am putut incarca raportul."));
+    }
+    const data = await response.json();
+    renderReport(data.prediction, elements.historyDetailPanel, { historical: true });
+    elements.historyDetailPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (error) {
+    elements.historyDetailPanel.innerHTML = `<p class="history-empty is-error">${escapeHtml(error.message || "Nu am putut incarca raportul.")}</p>`;
   }
 }
 
 async function deleteHistoryItem(historyId) {
-  if (!currentUser || !historyId) {
+  if (!currentUser || !historyId || !window.confirm("Stergi aceasta analiza din istoric?")) {
     return;
   }
-  if (!window.confirm("Stergi aceasta analiza din istoric?")) {
-    return;
-  }
-
   setAuthLoading(true);
   try {
     const response = await fetch(`/history/${encodeURIComponent(historyId)}`, {
@@ -378,23 +521,19 @@ async function deleteHistoryItem(historyId) {
     if (!response.ok) {
       throw new Error(await readErrorMessage(response, "Nu am putut sterge analiza."));
     }
+    elements.historyDetailPanel.classList.add("is-hidden");
     await loadHistory();
-    setMessage("Analiza a fost stearsa din istoric.", "success");
   } catch (error) {
-    setMessage(error.message || "Nu am putut sterge analiza.", "error");
+    window.alert(error.message || "Nu am putut sterge analiza.");
   } finally {
     setAuthLoading(false);
   }
 }
 
 async function clearHistory() {
-  if (!currentUser) {
+  if (!currentUser || !window.confirm("Stergi toate analizele din istoricul acestui cont?")) {
     return;
   }
-  if (!window.confirm("Stergi toate analizele din istoricul acestui cont?")) {
-    return;
-  }
-
   setAuthLoading(true);
   try {
     const response = await fetch("/history", {
@@ -404,10 +543,10 @@ async function clearHistory() {
     if (!response.ok) {
       throw new Error(await readErrorMessage(response, "Nu am putut sterge istoricul."));
     }
+    elements.historyDetailPanel.classList.add("is-hidden");
     await loadHistory();
-    setMessage("Istoricul a fost sters.", "success");
   } catch (error) {
-    setMessage(error.message || "Nu am putut sterge istoricul.", "error");
+    window.alert(error.message || "Nu am putut sterge istoricul.");
   } finally {
     setAuthLoading(false);
   }
@@ -415,13 +554,15 @@ async function clearHistory() {
 
 function renderHistory(items) {
   if (!items.length) {
-    historyList.innerHTML = '<p class="history-empty">Nu ai analizat inca niciun anunt.</p>';
+    elements.historyList.innerHTML = '<p class="history-empty">Nu ai analizat inca niciun anunt.</p>';
     return;
   }
 
-  historyList.innerHTML = items.map((item) => `
+  elements.historyList.innerHTML = items.map((item) => `
     <article class="history-card">
-      ${item.image_url ? `<img src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.title || "Anunt analizat")}">` : '<div class="history-image-placeholder">Fara imagine</div>'}
+      ${item.image_url
+        ? `<img src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.title || "Anunt analizat")}">`
+        : '<div class="history-image-placeholder">Fara imagine</div>'}
       <div class="history-content">
         <div class="history-meta">
           <span>${escapeHtml(item.source || "unknown")}</span>
@@ -429,18 +570,29 @@ function renderHistory(items) {
         </div>
         <h3>${escapeHtml(item.title || "Anunt fara titlu")}</h3>
         <div class="history-values">
-          <span>Anunt: <strong>${formatCurrency(item.actual_price_eur)}</strong></span>
-          <span>Estimat: <strong>${formatCurrency(item.predicted_price_eur)}</strong></span>
+          <span>Anunt <strong>${formatCurrency(item.actual_price_eur)}</strong></span>
+          <span>Estimat <strong>${formatCurrency(item.predicted_price_eur)}</strong></span>
           <span class="verdict-pill ${escapeHtml(item.verdict || "unknown")}">${escapeHtml(humanizeVerdict(item.verdict))}</span>
         </div>
-        <a href="${escapeHtml(item.url || "#")}" target="_blank" rel="noreferrer">Deschide anuntul</a>
-        <button class="history-delete-button" type="button" data-history-id="${escapeHtml(item.id)}">Sterge analiza</button>
+        <div class="history-settings">
+          <span>Marja ${formatNumber(item.threshold_percent)}%</span>
+          <span>${escapeHtml(humanizeWeightingMethod(item.ensemble_method))}</span>
+          <span>${formatNumber(item.similar_count)} masini similare</span>
+        </div>
+        <div class="history-card-actions">
+          <button class="secondary-button compact-button" type="button" data-view-history="${escapeHtml(item.id)}">Vezi raportul complet</button>
+          <a href="${escapeHtml(item.url || "#")}" target="_blank" rel="noreferrer">Anunt original</a>
+          <button class="history-delete-button" type="button" data-delete-history="${escapeHtml(item.id)}">Sterge</button>
+        </div>
       </div>
     </article>
   `).join("");
 
-  historyList.querySelectorAll("[data-history-id]").forEach((button) => {
-    button.addEventListener("click", () => deleteHistoryItem(button.dataset.historyId));
+  elements.historyList.querySelectorAll("[data-view-history]").forEach((button) => {
+    button.addEventListener("click", () => loadHistoryDetail(button.dataset.viewHistory));
+  });
+  elements.historyList.querySelectorAll("[data-delete-history]").forEach((button) => {
+    button.addEventListener("click", () => deleteHistoryItem(button.dataset.deleteHistory));
   });
 }
 
@@ -454,7 +606,6 @@ function buildSpecPills(normalized) {
     normalized.power_hp ? `${formatNumber(normalized.power_hp)} cp` : null,
     normalized.engine_capacity_cm3 ? `${formatNumber(normalized.engine_capacity_cm3)} cmc` : null,
   ].filter(Boolean);
-
   return values.map((value) => `<span class="spec-pill">${escapeHtml(value)}</span>`).join("");
 }
 
@@ -469,7 +620,6 @@ function buildImageMarkup(data) {
       </div>
     `;
   }
-
   return `
     <div class="image-card">
       <div class="image-placeholder">Fotografia principala nu a fost disponibila in anunt.</div>
@@ -484,8 +634,13 @@ function buildSimilarMarkup(similarListings) {
   if (!similarListings.length) {
     return `
       <section class="similar-section">
-        <p class="section-kicker">Masini similare</p>
-        <h3>Nu am gasit suficiente anunturi comparabile.</h3>
+        <div class="section-title-row">
+          <div>
+            <p class="section-kicker">Masini similare</p>
+            <h3>Nu am gasit suficiente anunturi comparabile.</h3>
+          </div>
+          ${helpButton("similar", "Explica masinile similare")}
+        </div>
       </section>
     `;
   }
@@ -494,14 +649,16 @@ function buildSimilarMarkup(similarListings) {
     const reasons = (listing.match_reasons || [])
       .map((reason) => `<span class="match-tag">${escapeHtml(humanizeReason(reason))}</span>`)
       .join("");
-
     return `
       <article class="similar-card">
-        <span>Masina similara</span>
-        <h4>${escapeHtml(listing.title || "Anunt fara titlu")}</h4>
-        <p>${formatCurrency(listing.price_eur)} | ${formatNumber(listing.year)} | ${formatNumber(listing.mileage_km)} km</p>
-        <p>${escapeHtml(listing.fuel_type || "N/A")} / ${escapeHtml(listing.transmission || "N/A")} | ${formatNumber(listing.power_hp)} cp</p>
-        <div class="match-tags">${reasons}</div>
+        <div class="similar-card-body">
+          <span class="card-eyebrow">Masina similara</span>
+          <h4>${escapeHtml(listing.title || "Anunt fara titlu")}</h4>
+          <p class="similar-price">${formatCurrency(listing.price_eur)}</p>
+          <p class="similar-specs">${formatNumber(listing.year)} · ${formatNumber(listing.mileage_km)} km · ${escapeHtml(listing.fuel_type || "N/A")}</p>
+          <p class="similar-specs">${escapeHtml(listing.transmission || "N/A")} · ${formatNumber(listing.power_hp)} cp</p>
+          <div class="match-tags">${reasons}</div>
+        </div>
         <a class="similar-link" href="${escapeHtml(listing.url || "#")}" target="_blank" rel="noreferrer">Vezi anuntul</a>
       </article>
     `;
@@ -509,84 +666,134 @@ function buildSimilarMarkup(similarListings) {
 
   return `
     <section class="similar-section">
-      <p class="section-kicker">Masini similare</p>
-      <h3>Anunturi apropiate din baza de date</h3>
+      <div class="section-title-row">
+        <div>
+          <p class="section-kicker">Masini similare</p>
+          <h3>Anunturi apropiate din baza de date</h3>
+        </div>
+        ${helpButton("similar", "Explica masinile similare")}
+      </div>
       <div class="similar-grid">${cards}</div>
     </section>
   `;
 }
 
 function buildModelEstimatesMarkup(modelEstimates) {
-  if (!modelEstimates.length) {
-    return "";
+  const estimates = modelEstimates.filter((item) => item.model !== "weighted_average");
+  if (!estimates.length) {
+    return '<p class="history-empty">Nu sunt disponibile estimari individuale pentru acest raport.</p>';
   }
 
-  const cards = modelEstimates.map((item) => `
-    <article class="model-card similar-card">
-      <span>Model</span>
-      <h4>${escapeHtml(humanizeModelName(item.model))}</h4>
-      <strong>${formatCurrency(item.predicted_price_eur)}</strong>
-      <p>RMSE test: ${formatCurrency(item.rmse)}</p>
-      <p>R2: ${item.r2 !== null && item.r2 !== undefined ? Number(item.r2).toFixed(3) : "N/A"}</p>
-      ${item.ensemble_weight ? `<p>Pondere: ${(Number(item.ensemble_weight) * 100).toFixed(1)}%</p>` : ""}
-      ${item.agreement_weight ? `<p>Acord intre modele: ${(Number(item.agreement_weight) * 100).toFixed(0)}%</p>` : ""}
-      ${item.weighting ? `<p>Metoda: ${escapeHtml(humanizeWeightingMethod(item.weighting))}</p>` : ""}
-      ${item.confidence ? `<p>Incredere: ${escapeHtml(item.confidence)} (${formatNumber(item.sample_size)} anunturi)</p>` : ""}
-      ${item.scope ? `<p>Grup comparatie: ${escapeHtml(item.scope)}</p>` : ""}
-      ${item.is_best_model ? `<div class="model-best-badge">${item.model === "weighted_average" ? "Estimarea finala" : "Cel mai bun model"}</div>` : ""}
-    </article>
-  `).join("");
-
   return `
-    <section class="models-section">
-      <p class="section-kicker">Comparatie modele</p>
-      <h3>Estimarea fiecarui model pentru acest anunt</h3>
-      <div class="models-grid">${cards}</div>
-    </section>
+    <div class="models-grid">
+      ${estimates.map((item) => `
+        <article class="model-card">
+          <span class="card-eyebrow">Model</span>
+          <h4>${escapeHtml(humanizeModelName(item.model))}</h4>
+          <strong>${formatCurrency(item.predicted_price_eur)}</strong>
+          <dl class="metric-list">
+            <div>
+              <dt>MAE ${helpButton("mae", "Explica MAE")}</dt>
+              <dd>${formatCurrency(item.mae)}</dd>
+            </div>
+            <div>
+              <dt>RMSE ${helpButton("rmse", "Explica RMSE")}</dt>
+              <dd>${formatCurrency(item.rmse)}</dd>
+            </div>
+            <div>
+              <dt>R2 ${helpButton("r2", "Explica R2")}</dt>
+              <dd>${formatMetric(item.r2)}</dd>
+            </div>
+            ${item.ensemble_weight ? `
+              <div>
+                <dt>Pondere</dt>
+                <dd>${(Number(item.ensemble_weight) * 100).toFixed(1)}%</dd>
+              </div>
+            ` : ""}
+            ${item.agreement_weight ? `
+              <div>
+                <dt>Acord ${helpButton("agreement", "Explica acordul intre modele")}</dt>
+                <dd>${(Number(item.agreement_weight) * 100).toFixed(0)}%</dd>
+              </div>
+            ` : ""}
+          </dl>
+          ${item.is_best_model ? '<div class="model-best-badge">Cel mai bun model individual</div>' : ""}
+        </article>
+      `).join("")}
+    </div>
   `;
 }
 
 function buildPerformancePlotsMarkup() {
   const cacheKey = Date.now();
   return `
-    <section class="plots-section">
-      <p class="section-kicker">Performanta modelelor</p>
-      <h3>Grafice generate in Python dupa antrenare</h3>
-      <div class="plots-grid">
-        <article class="plot-card">
-          <h4>Comparatie RMSE intre modele</h4>
-          <img src="/model-artifacts/model_performance.png?v=${cacheKey}" alt="Grafic comparativ RMSE pentru modele">
-        </article>
-        <article class="plot-card">
-          <h4>Pret real vs pret estimat</h4>
-          <img src="/model-artifacts/actual_vs_predicted.png?v=${cacheKey}" alt="Grafic pret real versus pret estimat">
-        </article>
-      </div>
-    </section>
+    <div class="plots-grid">
+      <article class="plot-card">
+        <h4>Comparatie RMSE intre modele</h4>
+        <img src="/model-artifacts/model_performance.png?v=${cacheKey}" alt="Grafic comparativ RMSE pentru modele">
+      </article>
+      <article class="plot-card">
+        <h4>Pret real vs pret estimat</h4>
+        <img src="/model-artifacts/actual_vs_predicted.png?v=${cacheKey}" alt="Grafic pret real versus pret estimat">
+      </article>
+    </div>
   `;
 }
 
-function renderResult(data) {
+function buildModelDisclosure(data) {
+  return `
+    <details class="model-disclosure">
+      <summary>
+        <span>
+          <strong>Vezi performanta fiecarui model</strong>
+          <small>Estimari individuale, MAE, RMSE, R2 si graficele de test</small>
+        </span>
+        <span class="disclosure-icon" aria-hidden="true">+</span>
+      </summary>
+      <div class="model-disclosure-content">
+        <div class="section-title-row compact-title">
+          <div>
+            <p class="section-kicker">Comparatie modele</p>
+            <h3>De ce au contribuit diferit la rezultat?</h3>
+          </div>
+          ${helpButton("weighted", "Explica estimarea finala ponderata")}
+        </div>
+        ${buildModelEstimatesMarkup(data.model_estimates || [])}
+        <div class="plots-heading">
+          <p class="section-kicker">Performanta la testare</p>
+          <h3>Grafice generate dupa antrenare</h3>
+        </div>
+        ${buildPerformancePlotsMarkup()}
+      </div>
+    </details>
+  `;
+}
+
+function renderReport(data, target, options = {}) {
   const normalized = data.normalized_listing || {};
   const verdictClass = data.verdict || "unknown";
   const similarListings = data.similar_listings || [];
-  const modelEstimates = data.model_estimates || [];
+  const weightingMethod = getEnsembleMethod(data);
+  const historicalLabel = options.historical
+    ? `<div class="report-history-label">Raport salvat la ${formatDateTime(data.history_created_at)}</div>`
+    : "";
 
-  resultPanel.classList.remove("is-empty");
-  resultPanel.innerHTML = `
+  target.classList.remove("is-empty", "is-hidden");
+  target.innerHTML = `
     <div class="result-card">
+      ${historicalLabel}
       <div class="result-top">
         <div class="result-main">
-          <p class="section-kicker">Rezultat</p>
+          <div class="section-title-row">
+            <p class="section-kicker">Verdict final</p>
+            ${helpButton("weighted", "Explica estimarea finala ponderata")}
+          </div>
           <h2>${escapeHtml(data.title || "Anunt fara titlu")}</h2>
-          <p class="result-subcopy">
-            Pret afisat: <strong>${formatCurrency(data.actual_price_eur)}</strong>.
-            Pret estimat: <strong>${formatCurrency(data.predicted_price_eur)}</strong>.
-          </p>
+          <p class="result-subcopy">Concluzia este calculata din estimarea finala ponderata a modelelor.</p>
 
           <div class="verdict-row">
             <span class="verdict-pill ${escapeHtml(verdictClass)}">${escapeHtml(humanizeVerdict(verdictClass))}</span>
-            <span class="spec-pill">Diferenta: ${formatPercent(data.delta_percent)}</span>
+            <span class="spec-pill">Diferenta ${formatPercent(data.delta_percent)}</span>
           </div>
 
           <div class="price-grid">
@@ -594,8 +801,8 @@ function renderResult(data) {
               <span>Pret anunt</span>
               <strong>${formatCurrency(data.actual_price_eur)}</strong>
             </article>
-            <article class="price-card">
-              <span>Pret estimat</span>
+            <article class="price-card featured-price">
+              <span>Estimare finala</span>
               <strong>${formatCurrency(data.predicted_price_eur)}</strong>
             </article>
             <article class="price-card">
@@ -604,37 +811,49 @@ function renderResult(data) {
             </article>
           </div>
 
+          <div class="report-settings">
+            <span>Marja verdict: <strong>${formatNumber(data.threshold_percent)}%</strong></span>
+            <span>Vot: <strong>${escapeHtml(humanizeWeightingMethod(weightingMethod))}</strong></span>
+          </div>
           <div class="spec-list">${buildSpecPills(normalized)}</div>
         </div>
-
         ${buildImageMarkup(data)}
       </div>
 
-      ${buildModelEstimatesMarkup(modelEstimates)}
-
-      ${buildPerformancePlotsMarkup()}
-
+      ${buildModelDisclosure(data)}
       ${buildSimilarMarkup(similarListings)}
 
       <p class="result-note">
-        Verdictul este calculat folosind un prag de ${formatNumber(data.threshold_percent)}% fata de pretul estimat de model.
+        Verdictul compara pretul anuntului cu estimarea finala si aplica marja de ${formatNumber(data.threshold_percent)}%.
       </p>
     </div>
   `;
+  bindHelpButtons(target);
+}
+
+function inferSiteFromUrl(url) {
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    if (host.endsWith("autovit.ro")) {
+      return "autovit";
+    }
+    if (host.endsWith("mobile.de")) {
+      return "mobilede";
+    }
+  } catch (error) {
+    return null;
+  }
+  return null;
 }
 
 async function submitPrediction(event) {
-  if (event) {
-    event.preventDefault();
-  }
-
-  const url = urlInput.value.trim();
+  event.preventDefault();
+  const url = elements.urlInput.value.trim();
   if (!currentUser) {
     setMessage("Te rog autentifica-te sau creeaza un cont inainte de analiza.", "error");
-    authPanel.scrollIntoView({ behavior: "smooth", block: "center" });
+    elements.authPanel.scrollIntoView({ behavior: "smooth", block: "center" });
     return;
   }
-
   if (!url) {
     setMessage("Te rog introdu un link valid de Autovit sau mobile.de.", "error");
     return;
@@ -646,39 +865,32 @@ async function submitPrediction(event) {
     return;
   }
 
-  const thresholdPercent = Number(thresholdInput.value || 15);
+  const thresholdPercent = Number(elements.thresholdInput.value || 15);
   if (!Number.isFinite(thresholdPercent) || thresholdPercent <= 0 || thresholdPercent > 100) {
     setMessage("Toleranta trebuie sa fie intre 1% si 100%.", "error");
     return;
   }
-  const ensembleMethod = ensembleMethodInput.value || "inverse_mae_with_agreement";
 
   setLoading(true);
   setMessage("Analizam anuntul...");
-
   try {
     const response = await fetch("/predict", {
       method: "POST",
       credentials: "same-origin",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         site,
         url,
         threshold_percent: thresholdPercent,
-        ensemble_method: ensembleMethod,
+        ensemble_method: elements.ensembleMethodInput.value || "inverse_mae_with_agreement",
         similar_limit: similarLimit,
       }),
     });
-
     const data = await response.json();
     if (!response.ok) {
       throw new Error(data.detail || "Analiza nu a putut fi finalizata.");
     }
-
-    renderResult(data);
-    loadHistory();
+    renderReport(data, elements.resultPanel);
     setMessage("Analiza a fost finalizata cu succes.", "success");
   } catch (error) {
     setMessage(error.message || "A aparut o eroare la analiza.", "error");
@@ -688,24 +900,32 @@ async function submitPrediction(event) {
 }
 
 function loadExample() {
-  urlInput.value = exampleUrl;
+  elements.urlInput.value = exampleUrl;
   setMessage("Am completat un exemplu. Apasa pe buton pentru analiza.");
 }
 
-form.addEventListener("submit", submitPrediction);
-exampleButton.addEventListener("click", loadExample);
-loginForm.addEventListener("submit", submitLogin);
-registerForm.addEventListener("submit", submitRegister);
-showLoginButton.addEventListener("click", () => showAuthMode("login"));
-showRegisterButton.addEventListener("click", () => showAuthMode("register"));
-logoutButton.addEventListener("click", logout);
-refreshHistoryButton.addEventListener("click", loadHistory);
-clearHistoryButton.addEventListener("click", clearHistory);
-themeToggle.addEventListener("click", () => {
+elements.form.addEventListener("submit", submitPrediction);
+elements.exampleButton.addEventListener("click", loadExample);
+elements.loginForm.addEventListener("submit", submitLogin);
+elements.registerForm.addEventListener("submit", submitRegister);
+elements.showLoginButton.addEventListener("click", () => showAuthMode("login"));
+elements.showRegisterButton.addEventListener("click", () => showAuthMode("register"));
+elements.logoutButton.addEventListener("click", logout);
+elements.refreshHistoryButton.addEventListener("click", loadHistory);
+elements.clearHistoryButton.addEventListener("click", clearHistory);
+elements.themeToggle.addEventListener("click", () => {
   const current = document.body.dataset.theme === "dark" ? "dark" : "light";
   applyTheme(current === "dark" ? "light" : "dark");
 });
+elements.helpDialogClose.addEventListener("click", () => elements.helpDialog.close());
+elements.helpDialog.addEventListener("click", (event) => {
+  if (event.target === elements.helpDialog) {
+    elements.helpDialog.close();
+  }
+});
 
+initializeRoute();
 initializeTheme();
 showAuthMode("login");
+bindHelpButtons();
 checkSession();

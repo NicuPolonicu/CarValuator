@@ -9,7 +9,7 @@
 <body>
   <div id="loadingOverlay" class="loading-overlay" aria-hidden="true">
     <div class="loading-card">
-      <div class="loading-orbit">
+      <div class="loading-orbit" aria-hidden="true">
         <div class="loading-ring ring-a"></div>
         <div class="loading-ring ring-b"></div>
         <div class="loading-core"></div>
@@ -20,12 +20,26 @@
     </div>
   </div>
 
+  <dialog id="helpDialog" class="help-dialog">
+    <button id="helpDialogClose" class="dialog-close" type="button" aria-label="Inchide explicatia">Inchide</button>
+    <p class="section-kicker">Explicatie rapida</p>
+    <h2 id="helpDialogTitle">Termen</h2>
+    <div id="helpDialogBody" class="help-dialog-body"></div>
+    <a class="dialog-link" href="/explicatii">Vezi toate explicatiile</a>
+  </dialog>
+
   <div class="page-shell">
     <header class="topbar">
       <a class="brand" href="/">
         <span class="brand-mark">CV</span>
         <span class="brand-text">CarValuator</span>
       </a>
+
+      <nav class="main-nav" aria-label="Navigare principala">
+        <a class="nav-link" data-route="/" href="/">Evaluare</a>
+        <a class="nav-link" data-route="/istoric" href="/istoric">Istoric</a>
+        <a class="nav-link" data-route="/explicatii" href="/explicatii">Explicatii</a>
+      </nav>
 
       <div class="topbar-actions">
         <div id="authStatus" class="auth-status">Neautentificat</div>
@@ -37,131 +51,205 @@
     </header>
 
     <main class="layout">
-      <section class="hero">
-        <p class="hero-kicker">Evaluator pentru anunturi auto second-hand</p>
-        <h1>CarValuator - deal or scam?</h1>
-        <p class="hero-copy">
-          Aplicatia analizeaza anuntul, estimeaza un pret corect pe baza modelului antrenat
-          si iti arata cateva masini similare din baza de date colectata.
-        </p>
-      </section>
+      <section id="evaluatorPage" class="page-view">
+        <section class="hero">
+          <p class="hero-kicker">Evaluator pentru anunturi auto second-hand</p>
+          <h1>CarValuator - deal or scam?</h1>
+          <p class="hero-copy">
+            Introdu linkul unui anunt Autovit sau mobile.de. Aplicatia extrage datele,
+            estimeaza pretul si iti arata daca oferta este apropiata de piata.
+          </p>
+        </section>
 
-      <section id="authPanel" class="panel auth-panel">
-        <div class="auth-copy">
-          <p class="section-kicker">Cont utilizator</p>
-          <h2>Autentifica-te sau creeaza un cont.</h2>
-          <p>Folosim doar email, username si parola. Dupa login poti analiza anunturi Autovit sau mobile.de.</p>
-        </div>
-
-        <div class="auth-card">
-          <div class="auth-tabs" role="tablist" aria-label="Autentificare">
-            <button id="showLoginButton" class="auth-tab is-active" type="button">Login</button>
-            <button id="showRegisterButton" class="auth-tab" type="button">Creeaza cont</button>
+        <section id="authPanel" class="panel auth-panel">
+          <div class="auth-copy">
+            <p class="section-kicker">Cont utilizator</p>
+            <h2>Autentifica-te sau creeaza un cont.</h2>
+            <p>Contul pastreaza rapoartele complete, inclusiv setarile si masinile similare.</p>
           </div>
 
-          <form id="loginForm" class="auth-form">
-            <label class="field">
-              <span>Email sau username</span>
-              <input id="loginIdentifier" name="identifier" type="text" autocomplete="username" required>
-            </label>
-            <label class="field">
-              <span>Parola</span>
-              <input id="loginPassword" name="password" type="password" autocomplete="current-password" required>
-            </label>
-            <button id="loginButton" class="primary-button" type="submit">Login</button>
-          </form>
+          <div class="auth-card">
+            <div class="auth-tabs" role="tablist" aria-label="Autentificare">
+              <button id="showLoginButton" class="auth-tab is-active" type="button">Login</button>
+              <button id="showRegisterButton" class="auth-tab" type="button">Creeaza cont</button>
+            </div>
 
-          <form id="registerForm" class="auth-form is-hidden">
-            <label class="field">
-              <span>Email</span>
-              <input id="registerEmail" name="email" type="email" autocomplete="email" required>
-            </label>
-            <label class="field">
-              <span>Username</span>
-              <input id="registerUsername" name="username" type="text" autocomplete="username" required>
-            </label>
-            <label class="field">
-              <span>Parola</span>
-              <input id="registerPassword" name="password" type="password" autocomplete="new-password" minlength="8" required>
-            </label>
-            <button id="registerButton" class="primary-button" type="submit">Creeaza cont</button>
-          </form>
+            <form id="loginForm" class="auth-form">
+              <label class="field">
+                <span>Email sau username</span>
+                <input id="loginIdentifier" name="identifier" type="text" autocomplete="username" required>
+              </label>
+              <label class="field">
+                <span>Parola</span>
+                <input id="loginPassword" name="password" type="password" autocomplete="current-password" required>
+              </label>
+              <button id="loginButton" class="primary-button" type="submit">Login</button>
+            </form>
 
-          <p id="authMessage" class="form-message" aria-live="polite"></p>
-        </div>
-      </section>
+            <form id="registerForm" class="auth-form is-hidden">
+              <label class="field">
+                <span>Email</span>
+                <input id="registerEmail" name="email" type="email" autocomplete="email" required>
+              </label>
+              <label class="field">
+                <span>Username</span>
+                <input id="registerUsername" name="username" type="text" autocomplete="username" required>
+              </label>
+              <label class="field">
+                <span>Parola</span>
+                <input id="registerPassword" name="password" type="password" autocomplete="new-password" minlength="8" required>
+              </label>
+              <button id="registerButton" class="primary-button" type="submit">Creeaza cont</button>
+            </form>
 
-      <section class="panel input-panel">
-        <form id="predictForm" class="predict-form">
-          <label class="field">
-            <span>Link anunt Autovit sau mobile.de</span>
-            <input
-              id="urlInput"
-              name="url"
-              type="url"
-              required
-              placeholder="https://www.autovit.ro/... sau https://suchen.mobile.de/..."
-              autocomplete="off"
-            >
-          </label>
+            <p id="authMessage" class="form-message" aria-live="polite"></p>
+          </div>
+        </section>
 
-          <div class="analysis-options">
+        <section class="panel input-panel">
+          <form id="predictForm" class="predict-form">
             <label class="field">
-              <span>Metoda estimare finala</span>
-              <select id="ensembleMethodInput" name="ensemble_method">
-                <option value="inverse_mae_with_agreement" selected>MAE + acord intre modele</option>
-                <option value="inverse_mae">Doar MAE</option>
-              </select>
-            </label>
-            <label class="field">
-              <span>Toleranta verdict (%)</span>
+              <span>Link anunt Autovit sau mobile.de</span>
               <input
-                id="thresholdInput"
-                name="threshold_percent"
-                type="number"
-                min="1"
-                max="100"
-                step="1"
-                value="15"
-                inputmode="decimal"
+                id="urlInput"
+                name="url"
+                type="url"
+                required
+                placeholder="https://www.autovit.ro/... sau https://www.mobile.de/..."
+                autocomplete="off"
               >
             </label>
-          </div>
 
-          <div class="form-actions">
-            <button id="submitButton" class="primary-button" type="submit">
-              <span class="button-text">Analizeaza anuntul</span>
-            </button>
-            <button id="exampleButton" class="secondary-button" type="button">Exemplu</button>
-          </div>
-        </form>
+            <div class="analysis-options">
+              <label class="field">
+                <span class="field-label-row">
+                  Metoda estimare finala
+                  <button class="help-button" type="button" data-help="voting" aria-label="Explica metoda estimarii finale">?</button>
+                </span>
+                <select id="ensembleMethodInput" name="ensemble_method">
+                  <option value="inverse_mae_with_agreement" selected>MAE + acord intre modele</option>
+                  <option value="inverse_mae">Doar MAE</option>
+                </select>
+              </label>
+              <label class="field">
+                <span class="field-label-row">
+                  Toleranta verdict (%)
+                  <button class="help-button" type="button" data-help="tolerance" aria-label="Explica toleranta verdictului">?</button>
+                </span>
+                <input
+                  id="thresholdInput"
+                  name="threshold_percent"
+                  type="number"
+                  min="1"
+                  max="100"
+                  step="1"
+                  value="15"
+                  inputmode="decimal"
+                >
+              </label>
+            </div>
 
-        <p id="formMessage" class="form-message" aria-live="polite"></p>
+            <div class="form-actions">
+              <button id="submitButton" class="primary-button" type="submit">
+                <span class="button-text">Analizeaza anuntul</span>
+              </button>
+              <button id="exampleButton" class="secondary-button" type="button">Exemplu</button>
+            </div>
+          </form>
+
+          <p id="formMessage" class="form-message" aria-live="polite"></p>
+        </section>
+
+        <section id="resultPanel" class="panel result-panel is-empty">
+          <div class="empty-state">
+            <h2>Rezultatul va aparea aici.</h2>
+            <p>Initial vei vedea concluzia finala. Detaliile modelelor pot fi deschise separat.</p>
+          </div>
+        </section>
       </section>
 
-      <section id="resultPanel" class="panel result-panel is-empty">
-        <div class="empty-state">
-          <h2>Rezultatul va aparea aici.</h2>
-          <p>
-            Dupa analiza vei vedea verdictul pentru pret, fotografia principala a masinii si anunturi similare.
-          </p>
-        </div>
+      <section id="historyPage" class="page-view is-hidden">
+        <section class="page-heading">
+          <p class="hero-kicker">Arhiva contului</p>
+          <h1>Istoricul rapoartelor</h1>
+          <p>Redeschide orice analiza exact cu setarile, modelele si masinile similare salvate atunci.</p>
+        </section>
+
+        <section id="historyLoginGate" class="panel locked-panel is-hidden">
+          <p class="section-kicker">Cont necesar</p>
+          <h2>Autentifica-te pentru a vedea istoricul.</h2>
+          <p>Rapoartele sunt private si sunt asociate strict contului care le-a creat.</p>
+          <a class="primary-link-button" href="/">Mergi la autentificare</a>
+        </section>
+
+        <section id="historyPanel" class="panel history-panel is-hidden">
+          <div class="history-head">
+            <div>
+              <p class="section-kicker">Rapoarte salvate</p>
+              <h2>Anunturile verificate de contul tau</h2>
+            </div>
+            <div class="history-actions">
+              <button id="refreshHistoryButton" class="secondary-button" type="button">Refresh</button>
+              <button id="clearHistoryButton" class="danger-button" type="button">Sterge tot</button>
+            </div>
+          </div>
+          <div id="historyList" class="history-list">
+            <p class="history-empty">Nu ai analizat inca niciun anunt.</p>
+          </div>
+        </section>
+
+        <section id="historyDetailPanel" class="panel result-panel history-detail-panel is-hidden"></section>
       </section>
 
-      <section id="historyPanel" class="panel history-panel is-hidden">
-        <div class="history-head">
-          <div>
-            <p class="section-kicker">Istoric analize</p>
-            <h2>Anunturile verificate de contul tau</h2>
-          </div>
-          <div class="history-actions">
-            <button id="refreshHistoryButton" class="secondary-button" type="button">Refresh</button>
-            <button id="clearHistoryButton" class="danger-button" type="button">Sterge tot</button>
-          </div>
-        </div>
-        <div id="historyList" class="history-list">
-          <p class="history-empty">Nu ai analizat inca niciun anunt.</p>
-        </div>
+      <section id="explanationsPage" class="page-view is-hidden">
+        <section class="page-heading explanation-heading">
+          <p class="hero-kicker">Fara jargon inutil</p>
+          <h1>Ce inseamna rezultatele?</h1>
+          <p>Explicatii scurte pentru termenii folositi in evaluare si in comparatia modelelor.</p>
+        </section>
+
+        <section class="term-grid">
+          <article class="term-card">
+            <span class="term-index">01</span>
+            <h2>Estimarea finala ponderata</h2>
+            <p>Este pretul principal afisat de CarValuator. Aplicatia combina estimarile mai multor modele si acorda mai multa importanta celor care au avut erori mai mici la testare.</p>
+          </article>
+          <article class="term-card">
+            <span class="term-index">02</span>
+            <h2>MAE</h2>
+            <p>Eroarea medie absoluta. Daca MAE este 2.500 EUR, modelul greseste in medie cu aproximativ 2.500 EUR, indiferent daca estimeaza prea mult sau prea putin. Mai mic este mai bine.</p>
+          </article>
+          <article class="term-card">
+            <span class="term-index">03</span>
+            <h2>R2</h2>
+            <p>Arata cat de bine explica modelul diferentele dintre preturi. O valoare mai apropiata de 1 este mai buna. Nu inseamna procent de precizie si nu garanteaza o estimare perfecta pentru fiecare masina.</p>
+          </article>
+          <article class="term-card">
+            <span class="term-index">04</span>
+            <h2>RMSE</h2>
+            <p>O alta masura a erorii, care penalizeaza mai puternic greselile foarte mari. Este utila pentru a observa modelele care pot rata serios pretul unor masini neobisnuite.</p>
+          </article>
+          <article class="term-card">
+            <span class="term-index">05</span>
+            <h2>MAE + acord intre modele</h2>
+            <p>Porneste de la MAE, dar reduce influenta unui model daca estimarea lui este foarte departe de restul. Este varianta mai prudenta atunci cand un singur algoritm produce o valoare extrema.</p>
+          </article>
+          <article class="term-card">
+            <span class="term-index">06</span>
+            <h2>KNN si masini similare</h2>
+            <p>KNN cauta exemple apropiate ca marca, model si specificatii. Lista de masini similare ajuta la verificarea rezultatului, dar preturile lor nu sunt adaugate din nou in estimarea finala.</p>
+          </article>
+          <article class="term-card">
+            <span class="term-index">07</span>
+            <h2>Toleranta verdictului</h2>
+            <p>Este marja acceptata in jurul pretului estimat. La o toleranta de 10%, un anunt aflat cu cel mult 10% peste sau sub estimare este considerat la pret corect.</p>
+          </article>
+          <article class="term-card">
+            <span class="term-index">08</span>
+            <h2>Verdictul</h2>
+            <p>Pret corect inseamna ca anuntul este in marja aleasa. Pret prea mare este peste limita superioara, iar pret suspect de mic este sub limita inferioara si merita verificari suplimentare.</p>
+          </article>
+        </section>
       </section>
     </main>
   </div>

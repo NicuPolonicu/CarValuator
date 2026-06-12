@@ -222,24 +222,46 @@ The web app shows:
 - Romanian interface
 - dark/light mode
 - email/username/password account creation and login
-- per-account prediction history
+- a separate per-account history page with complete saved reports
 - loading animation
 - main car image when Autovit or mobile.de provides one
 - fair-price verdict
-- estimates from every trained model
+- the final weighted estimate first, with per-model estimates in an optional details section
 - Python-generated model performance plots
 - similar car ads from the scraped CSV
+- a separate explanations page and contextual help buttons for ML terms
 
-Account data and prediction history are stored locally in `data\carvaluator_users.db` by default. Passwords are stored as salted PBKDF2 hashes, and logged-in sessions use an HTTP-only cookie. To move the auth database, set `CARVALUATOR_AUTH_DB`.
+Account data and prediction history are stored locally in `data\carvaluator_users.db` by default. Each history record stores the complete prediction JSON, including the verdict tolerance, ensemble method, individual model estimates, metrics, plots, normalized listing and similar-car suggestions. Passwords are stored as salted PBKDF2 hashes, and logged-in sessions use an HTTP-only cookie. To move the auth database, set `CARVALUATOR_AUTH_DB`.
+
+The local startup script uses `data\similarity_current.csv` for similar-car suggestions. Refresh it periodically to reduce expired links:
+
+```powershell
+.\scripts\refresh-similarity.ps1 -Pages 100 -RestartServer
+```
+
+The script collects current Autovit listings, normalizes and deduplicates them, archives the timestamped result, replaces `data\similarity_current.csv` only after a successful export, and optionally restarts the local server. This changes only the KNN comparison pool; it does not retrain or change the price prediction models.
+
+To prepare the same fresh suggestions for Render:
+
+```powershell
+.\scripts\refresh-similarity.ps1 -Pages 100 -UpdateRenderArtifacts -RestartServer
+```
+
+Afterward, commit and push `deploy_artifacts\datasets\similarity_current.csv`, `render.yaml`, and the related code, then redeploy Render. A local refresh alone does not modify the public deployment.
 
 ## 7. API Routes
 
 Main routes:
 
 - `GET /`
+- `GET /istoric`
+- `GET /explicatii`
 - `GET /health`
 - `POST /predict`
 - `GET /history`
+- `GET /history/{history_id}`
+- `DELETE /history/{history_id}`
+- `DELETE /history`
 - `GET /model-artifacts/model_performance.png`
 - `GET /model-artifacts/actual_vs_predicted.png`
 
@@ -253,7 +275,7 @@ Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:8001/predict" -ContentType
 
 The repo includes a `render.yaml` Blueprint and a `Dockerfile` for deploying the FastAPI app as one public Render web service. Docker keeps the ML runtime reproducible and installs the Chromium browser required by the mobile.de fallback.
 
-The repository includes a prepared `deploy_artifacts` folder, so Render does not need access to the ignored local `data` directory. Regenerate it from the current combined dataset and model with:
+The repository includes a prepared `deploy_artifacts` folder, so Render does not need access to the ignored local `data` directory. Regenerate it from the current similarity snapshot and model with:
 
 ```powershell
 .\scripts\prepare-render-artifacts.ps1 -Clean
@@ -262,7 +284,7 @@ The repository includes a prepared `deploy_artifacts` folder, so Render does not
 This creates:
 
 - `deploy_artifacts\model_results\best_model.joblib`
-- `deploy_artifacts\datasets\combined_reader_20260606.csv`
+- `deploy_artifacts\datasets\similarity_current.csv`
 - copied training metrics and plots when available
 
 The cloud bundle keeps SVR, Ridge, KNN, and Gradient Boosting. The UI still shows four model estimates plus the weighted final estimate, while avoiding the much larger Random Forest, Extra Trees, and duplicated Voting Regressor objects. The resulting model file is approximately 1 MB instead of approximately 204 MB.
@@ -294,6 +316,35 @@ Dockerfile: ./Dockerfile
 Health check: /health
 ```
 
+The public API also enables sliding-window rate limiting:
+
+| Scope | Default limit | Key |
+| --- | ---: | --- |
+| Entire API | 60 requests/minute | client IP |
+| Login | 10 attempts/15 minutes | client IP |
+| Registration | 3 accounts/hour | client IP |
+| Prediction | 5 analyses/minute | authenticated account |
+
+Rejected requests return HTTP `429 Too Many Requests`, a Romanian explanation in the JSON `detail` field, and a `Retry-After` header. The active policy is also visible under `rate_limits` in `/health`.
+
+The limits are configurable without code changes:
+
+```text
+CARVALUATOR_RATE_LIMIT_ENABLED=1
+CARVALUATOR_RATE_LIMIT_GLOBAL_REQUESTS=60
+CARVALUATOR_RATE_LIMIT_GLOBAL_WINDOW_SECONDS=60
+CARVALUATOR_RATE_LIMIT_LOGIN_REQUESTS=10
+CARVALUATOR_RATE_LIMIT_LOGIN_WINDOW_SECONDS=900
+CARVALUATOR_RATE_LIMIT_REGISTER_REQUESTS=3
+CARVALUATOR_RATE_LIMIT_REGISTER_WINDOW_SECONDS=3600
+CARVALUATOR_RATE_LIMIT_PREDICT_REQUESTS=5
+CARVALUATOR_RATE_LIMIT_PREDICT_WINDOW_SECONDS=60
+```
+
+`CARVALUATOR_TRUST_PROXY_HEADERS=1` is enabled in `render.yaml` so the limiter uses the original client IP supplied by Render's trusted proxy. Do not enable this option when the API is exposed directly without a trusted reverse proxy.
+
+The current limiter is stored in process memory. This is appropriate for the single-process faculty demo, but counters reset after a restart and are not shared between multiple instances. A scaled production deployment should use a shared backend such as Redis.
+
 The Docker build pins the same `scikit-learn`, NumPy, SciPy, pandas, and joblib versions used to create the deployed model bundle. It also installs Playwright Chromium instead of assuming that Microsoft Edge exists on the Linux server. The app binds to `0.0.0.0` and reads Render's `PORT` environment variable.
 
 After changing runtime dependencies, use `Manual Deploy` and `Clear build cache & deploy` in Render. Once live, open `/health` and verify that `runtime_versions.scikit_learn` is `1.8.0` and `runtime_versions.playwright` is `1.58.0`.
@@ -302,6 +353,7 @@ Important demo limitations:
 
 - Render Free has 512 MB RAM and spins down after 15 minutes without traffic. The first request after that can take about one minute.
 - Accounts and history use `/tmp/carvaluator_users.db`. They can reset after a restart, redeploy, or spin-down, which is acceptable for a faculty demo but not production.
+- Rate-limit counters are kept in memory and also reset when the service restarts.
 - mobile.de and Autovit can block requests originating from cloud IP addresses. For the safest demo, test links already present in `combined_reader_20260606.csv`.
 - Open the public site several minutes before presenting, log in, and run one test prediction to warm the service.
 

@@ -3,7 +3,7 @@ param(
     [int]$Port = 8017,
 
     [string]$ModelBundle = "data\model_results_combined_reader_20260606_log\best_model.joblib",
-    [string]$SimilarityCsv = "data\combined_reader_20260606.csv",
+    [string]$SimilarityCsv = "data\similarity_current.csv",
     [string]$AuthDb = "data\carvaluator_users.db",
 
     [switch]$InstallDependencies,

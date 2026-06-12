@@ -1,7 +1,9 @@
-\chapter{Modelare și selecția caracteristicilor}
-\label{chapter:models}
+\section{Modelare și selecția caracteristicilor}
+\label{sec:implementation-models}
 
-\section{Caracteristici derivate}
+Componenta de modelare transformă datele curate în caracteristici relevante, elimină coloanele slab susținute statistic și compară algoritmi cu ipoteze diferite. În continuare sunt motivate etapele de preprocesare, alegerea modelelor, antrenarea pe log-preț și calculul estimării finale.
+
+\subsection{Caracteristici derivate}
 \label{sec:models-features}
 
 Modelele nu folosesc doar câmpurile extrase direct din anunțuri. Pipeline-ul construiește și caracteristici derivate care surprind relații mai utile pentru predicție. Vârsta vehiculului este calculată ca diferență între anul curent și anul mașinii. Kilometrajul pe an împarte kilometrajul total la vârsta vehiculului, evitând interpretarea identică a două mașini cu același kilometraj, dar cu vârste diferite. Raportul cai putere pe litru este calculat din putere și capacitate cilindrică, oferind un indicator simplu al performanței specifice.
@@ -24,7 +26,7 @@ O caracteristică importantă este \texttt{make\_model}, combinația dintre marc
     \end{tabular}
 \end{table}
 
-\section{Selecția statistică}
+\subsection{Selecția statistică}
 \label{sec:models-selection}
 
 Selecția caracteristicilor are rolul de a reduce zgomotul și de a elimina coloanele slab reprezentate. Pentru caracteristicile numerice, pipeline-ul calculează corelația Pearson față de prețul logaritmic. Pentru caracteristicile categorice, prețul este împărțit în intervale, iar asocierea dintre categorie și intervalul de preț este testată prin chi-pătrat. Mărimea efectului este exprimată printr-o valoare de tip Cramér V.
@@ -53,53 +55,45 @@ Selecția caracteristicilor are rolul de a reduce zgomotul și de a elimina colo
 
 Unele câmpuri au fost eliminate deși pot fi importante în realitate. \texttt{transmission} și \texttt{body\_type} au fost eliminate în setul combinat deoarece erau completate pentru prea puține rânduri. \texttt{fuel\_type} a avut semnificație statistică, dar efectul a fost sub pragul ales. Această situație indică o limitare a datelor, nu neapărat o lipsă de relevanță a combustibilului.
 
-\section{Preprocesare}
+\subsection{Preprocesare}
 \label{sec:models-preprocessing}
 
 Pipeline-ul folosește transformări diferite pentru variabile numerice și categorice. Variabilele numerice sunt imputate atunci când lipsesc și scalate pentru modelele sensibile la distanță, precum SVR și KNN. Variabilele categorice sunt imputate cu o valoare specială pentru lipsă și transformate prin one-hot encoding.
 
 Această separare este importantă deoarece modelele au cerințe diferite. Arborii de decizie sunt mai puțin sensibili la scalare, dar SVR și KNN pot fi dominate de variabile cu valori mari, de exemplu kilometrajul. Prin standardizare, fiecare variabilă numerică are o contribuție comparabilă în spațiul de intrare.
 
-\section{Modele candidate}
+\subsection{Modele candidate și motivarea alegerii}
 \label{sec:models-candidates}
 
-Au fost antrenate șapte modele:
+Modelele au fost alese astfel încât experimentul să compare ipoteze diferite despre relația dintre caracteristicile mașinii și preț. Implementarea folosește scikit-learn \cite{pedregosa2011scikit}, iar fiecare algoritm este inclus într-un pipeline care conține aceeași logică de imputare și codificare. Astfel, diferențele de performanță provin din model, nu dintr-o pregătire diferită a setului de test.
 
-\begin{itemize}
-    \item \texttt{svr\_rbf}, un SVR cu kernel RBF;
-    \item \texttt{ridge}, o regresie liniară regularizată;
-    \item \texttt{knn\_distance}, KNN cu ponderare după distanță;
-    \item \texttt{random\_forest}, ansamblu Random Forest;
-    \item \texttt{extra\_trees}, ansamblu Extra Trees;
-    \item \texttt{gradient\_boosting}, boosting pe arbori;
-    \item \texttt{voting\_ensemble}, ansamblu care combină mai multe modele.
-\end{itemize}
+\subsubsection{SVR cu kernel RBF}
 
-Implementarea este realizată cu scikit-learn \cite{pedregosa2011scikit}. Fiecare model este inclus într-un pipeline care conține preprocesarea corespunzătoare. Această alegere reduce riscul de inconsistență între antrenare și predicție, deoarece aceeași transformare este aplicată și datelor din anunțurile live.
+Support Vector Regression caută o funcție care tolerează erorile mici într-un tub de lățime \(\epsilon\) și penalizează abaterile mai mari \cite{smola2004tutorial}. Kernelul RBF proiectează implicit datele într-un spațiu în care pot fi reprezentate relații neliniare. Am ales SVR deoarece prețul nu variază liniar cu anul sau kilometrajul: efectul unei diferențe de 20000 km depinde de vârstă, marcă și segment. Modelul oferă un contrast util față de arbori și față de regresia liniară, dar necesită standardizarea atentă a variabilelor numerice.
 
-\section{Funcționarea modelelor folosite}
-\label{sec:models-how-they-work}
+\subsubsection{Ridge Regression}
 
-Modelele au fost alese astfel încât să acopere familii diferite de regresie: modele liniare, modele bazate pe vecini, modele cu vectori suport și ansambluri de arbori. \labelindexref{Tabelul}{tab:model-methods} sintetizează ideea fiecărui algoritm și modul în care se interpretează în contextul evaluării unui anunț auto.
+Ridge este o regresie liniară regularizată, în care coeficienții mari sunt penalizați. Am inclus-o ca model de referință simplu și stabil, mai ales după transformarea variabilelor categorice prin one-hot encoding. Dacă un model liniar obține rezultate apropiate de algoritmii mai complecși, înseamnă că o parte importantă a prețului poate fi explicată prin efecte aditive ale anului, kilometrajului și categoriilor. Regularizarea reduce riscul ca o marcă sau o versiune rară să primească un coeficient exagerat.
 
-\begin{table}[htb]
-    \centering
-    \caption{Modul de funcționare al modelelor utilizate}
-    \label{tab:model-methods}
-    \begin{tabular}{@{}p{2.4cm}p{5.8cm}p{3.8cm}@{}}
-        \toprule
-        Model & Idee de funcționare & Exemplu în proiect \\
-        \midrule
-        SVR RBF & Caută o funcție neliniară care păstrează erorile mici într-un interval de toleranță și penalizează abaterile mari. Kernelul RBF permite relații neliniare între an, kilometraj, putere și preț. & Două mașini cu același an pot primi estimări diferite dacă distanța combinată față de exemplele de antrenare diferă mult. \\
-        Ridge & Este o regresie liniară cu regularizare. Coeficienții sunt micșorați pentru a evita supraînvățarea pe multe coloane one-hot. & O marcă sau o versiune poate avea un coeficient pozitiv, iar kilometrajul poate avea un coeficient negativ. \\
-        KNN & Estimează prețul ca medie ponderată a celor mai apropiate anunțuri din setul de antrenare. Vecinii mai apropiați primesc pondere mai mare. & Un Golf din 2018 este comparat cu alte Golf-uri apropiate ca an, kilometraj și putere. \\
-        Random Forest & Construiește mai mulți arbori de decizie pe eșantioane diferite și mediază predicțiile lor. & Un arbore poate învăța reguli pentru mașini diesel compacte, altul pentru mașini premium. \\
-        Extra Trees & Seamănă cu Random Forest, dar folosește praguri de împărțire mai randomizate, crescând diversitatea arborilor. & Ajută când datele conțin multe interacțiuni și zgomot, dar poate fi mai puțin stabil pentru zone rare. \\
-        Gradient Boosting & Construiește arbori secvențial. Fiecare arbore nou încearcă să corecteze erorile rămase de la ansamblul anterior. & Dacă modelul subestimează sistematic mașinile noi, arborii următori pot corecta parțial această zonă. \\
-        Voting Ensemble & Combină predicțiile mai multor modele pentru a reduce dependența de o singură ipoteză. & Predicția finală folosește o medie ponderată pe baza performanței și, opțional, a acordului dintre modele. \\
-        \bottomrule
-    \end{tabular}
-\end{table}
+\subsubsection{KNN cu ponderare după distanță}
+
+KNN estimează prețul folosind cele mai apropiate exemple din setul de antrenare, iar în varianta utilizată vecinii mai apropiați primesc o pondere mai mare. Alegerea este motivată de modul în care oamenii compară în practică mașinile: caută aceeași marcă și același model, apoi filtrează după an, kilometraj și motorizare. KNN oferă astfel o bază intuitivă pentru comparație. Dezavantajul este sensibilitatea la scalare și la zonele slab acoperite, unde cei mai apropiați vecini pot fi totuși foarte diferiți.
+
+\subsubsection{Random Forest}
+
+Random Forest construiește mai mulți arbori pe eșantioane și subseturi de caracteristici diferite, apoi mediază predicțiile \cite{breiman2001random}. L-am ales deoarece arborii surprind natural praguri și interacțiuni, de exemplu situația în care o putere mare crește prețul doar pentru anumite mărci sau generații. Ansamblul reduce variația unui arbore individual și este robust la relații neliniare, însă produce un artefact mare și nu extrapolează bine în afara intervalelor întâlnite la antrenare.
+
+\subsubsection{Extra Trees}
+
+Extra Trees folosește o randomizare mai puternică a pragurilor de separare decât Random Forest \cite{geurts2006extremely}. Motivul includerii sale este testarea efectului unei diversități mai mari între arbori asupra unui dataset zgomotos și eterogen. Randomizarea poate reduce varianța și poate evita adaptarea excesivă la combinații accidentale de an, kilometraj și versiune, dar poate pierde precizie în segmentele rare ale pieței.
+
+\subsubsection{Gradient Boosting}
+
+Gradient Boosting construiește arborii secvențial, fiecare arbore nou încercând să corecteze reziduurile ansamblului existent \cite{friedman2001greedy}. Modelul a fost ales deoarece poate rafina treptat zonele în care o estimare inițială este insuficientă, de exemplu mașinile foarte noi sau foarte puternice. Spre deosebire de pădurile aleatoare, boosting-ul urmărește explicit erorile rămase, dar poate deveni sensibil la zgomot dacă este antrenat prea agresiv.
+
+\subsubsection{Voting Regressor}
+
+Voting Regressor combină predicțiile unor algoritmi cu erori diferite. A fost inclus pentru a verifica dacă SVR, Ridge și modelele de arbori se completează reciproc. Motivația este reducerea dependenței de o singură ipoteză: un model poate fi bun pentru mașini comune, iar altul pentru exemple premium. În experimentul offline, acest ansamblu a oferit cea mai bună performanță globală, în timp ce aplicația web folosește și o medie ponderată explicită, descrisă în Secțiunea \ref{sec:models-weighted}.
 
 La nivel de implementare, toate modelele urmează același flux general:
 
@@ -120,14 +114,14 @@ salveaza_metrici_grafice_si_predictii_individuale()
 
 Această structură comună a permis compararea corectă a modelelor. Diferența dintre ele nu stă în datele primite sau în transformările aplicate, ci în modul în care fiecare model învață relația dintre caracteristici și preț.
 
-\section{Antrenarea pe log-preț}
+\subsection{Antrenarea pe log-preț}
 \label{sec:models-log-training}
 
 Primele experimente au arătat că modelele pot produce predicții prea apropiate între anunțuri diferite, mai ales când distribuția țintei este dezechilibrată. Pentru a corecta parțial problema, modelele finale au fost antrenate pe \(log1p(price)\). Această transformare reduce presiunea exemplelor foarte scumpe și face ca erorile relative să conteze mai echilibrat.
 
 În aplicație, predicțiile sunt inversate automat în EUR înainte de afișare. Utilizatorul nu vede valorile logaritmice. El vede prețul estimat, prețul anunțului și diferența procentuală.
 
-\section{Predicția finală prin medie ponderată}
+\subsection{Predicția finală prin medie ponderată}
 \label{sec:models-weighted}
 
 Aplicația nu este limitată la un singur model. Pentru fiecare anunț, sunt calculate predicții pentru modelele salvate în bundle. Predicția finală afișată utilizatorului este o medie ponderată:
@@ -150,7 +144,7 @@ A doua strategie, \texttt{inverse\_mae\_with\_agreement}, adaugă o penalizare p
 
 Această a doua strategie a fost introdusă deoarece un model poate avea performanță bună global, dar poate produce o predicție foarte diferită pentru un anunț atipic. Penalizarea de acord nu elimină modelul, dar îi reduce influența în predicția finală.
 
-\section{Verdictul}
+\subsection{Verdictul}
 \label{sec:models-verdict}
 
 Verdictul compară prețul din anunț cu prețul estimat. Dacă diferența procentuală absolută este sub pragul ales de utilizator, anunțul este considerat corect. Dacă prețul publicat este mult sub estimare, verdictul devine preț prea mic, cu interpretare de ofertă potențial suspectă. Dacă prețul publicat este mult peste estimare, verdictul devine preț prea mare.

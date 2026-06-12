@@ -1,5 +1,5 @@
-\chapter{Studii de caz și validare funcțională}
-\label{chapter:case-studies}
+\chapter{Testarea aplicației și rezultate}
+\label{chapter:testing}
 
 \section{Rolul studiilor de caz}
 \label{sec:case-role}
@@ -31,7 +31,7 @@ Pentru acest scenariu, afișarea predicțiilor pe model este esențială. Dacă 
 \section{Scenariu mobile.de}
 \label{sec:case-mobilede}
 
-Scenariul \mobilede\ validează integrarea cea mai fragilă. Utilizatorul introduce un link localizat, de forma \texttt{/ro/vehicule/detalii.html?id=...}. Backend-ul trebuie să extragă identificatorul anunțului și să parseze pagina de detaliu. În primele iterații, astfel de linkuri nu funcționau deoarece parserul se aștepta la forme diferite ale URL-ului.
+Scenariul \mobilede\ validează integrarea cea mai fragilă. Utilizatorul introduce un link localizat către pagina de detaliu, împreună cu identificatorul numeric al anunțului. Backend-ul trebuie să extragă identificatorul și să parseze pagina. În primele iterații, astfel de linkuri nu funcționau deoarece parserul se aștepta la forme diferite ale URL-ului.
 
 După extindere, aplicația poate trata linkuri de detaliu \mobilede, însă succesul depinde de răspunsul site-ului. Dacă pagina returnează o eroare de acces, aplicația afișează o eroare de predicție. Dacă pagina este disponibilă, câmpurile sunt extrase și normalizate similar cu \autovit.
 
@@ -42,7 +42,7 @@ O problemă observată în acest scenariu a fost imaginea greșită. Pentru anum
 
 Autentificarea și istoricul au fost adăugate deoarece utilizatorii testează mai multe anunțuri într-o sesiune. Fără istoric, fiecare analiză dispare după refresh. Cu istoric, aplicația devine un instrument de lucru: utilizatorul poate compara oferte, poate reveni la o analiză și poate elimina testele irelevante.
 
-Validarea acestui scenariu urmărește trei operații. Prima este crearea contului și autentificarea prin cookie HTTP-only. A doua este salvarea automată a unei predicții reușite. A treia este ștergerea unui element individual sau a întregului istoric. Această ultimă funcționalitate păstrează aplicația utilizabilă atunci când sunt comparate multe anunțuri într-o singură sesiune.
+Validarea acestui scenariu urmărește patru operații. Prima este crearea contului și autentificarea prin cookie HTTP-only. A doua este salvarea automată a unei predicții reușite. A treia este redeschiderea raportului complet din pagina dedicată istoricului. Verificarea confirmă păstrarea toleranței, a metodei de agregare, a celor patru estimări individuale și a celor patru sugestii similare folosite în raportul inițial. A patra este ștergerea unui element individual sau a întregului istoric. Această ultimă funcționalitate păstrează aplicația utilizabilă atunci când sunt comparate multe anunțuri într-o singură sesiune.
 
 Din perspectivă de proiectare, istoricul este legat strict de contul curent. Un utilizator nu poate șterge sau vedea analizele altui utilizator. Această regulă este verificată în backend prin dependența de autentificare înainte de accesarea rutelor \texttt{/history}.
 
@@ -54,6 +54,15 @@ Deployment-ul a fost pregătit pentru Render. Scenariul de validare pornește de
 Acest scenariu verifică ruta \texttt{/health}. Dacă modelul și CSV-ul există, ruta întoarce status „ok” și indică faptul că graficele pot fi servite. În testarea locală cu variabilele Render, ruta a confirmat existența modelului, a datasetului și a graficelor principale. Această verificare este importantă deoarece multe erori de deployment nu apar în cod, ci în calea fișierelor sau în variabilele de mediu.
 
 O limitare a deployment-ului demo este baza de date de autentificare. Dacă este plasată în \texttt{/tmp}, conturile pot fi pierdute la restart. Pentru un serviciu public stabil, este necesar un disc persistent sau o bază de date externă. Lucrarea marchează această diferență explicit, pentru ca demo-ul și producția să nu fie confundate.
+
+\section{Testarea limitării ratei}
+\label{sec:case-rate-limit}
+
+Prima observație preliminară primită de la un coleg înaintea sesiunii extinse de testare a utilizabilității a fost necesitatea unui mecanism de limitare a ratei. Observația este relevantă deoarece analiza unui link poate porni scraping și mai multe modele ML, iar autentificarea implică o funcție PBKDF2 intenționat costisitoare. Fără limitare, un script simplu ar putea consuma memoria și timpul de procesor al instanței gratuite sau ar putea încerca repetat parole.
+
+În urma observației a fost introdusă o fereastră glisantă configurabilă. Testele unitare verifică blocarea după atingerea pragului, eliberarea limitei după expirarea ferestrei, separarea adreselor IP și separarea conturilor. Un test HTTP a configurat temporar limita de login la două cereri pe minut: primele două autentificări cu date greșite au răspuns 401, iar a treia a răspuns 429 și a inclus \texttt{Retry-After: 60}. Astfel, mecanismul nu ascunde erorile normale de autentificare, dar oprește repetarea lor excesivă.
+
+Pentru sesiunea cu colegii, valorile implicite rămân suficient de permisive pentru utilizare normală: fiecare cont poate face cinci analize pe minut, iar limita generală este de 60 de cereri pe minut pentru un IP. Dacă mai mulți participanți folosesc aceeași rețea, predicțiile sunt în continuare separate după cont; limita generală rămâne o protecție de ultim nivel. Contoarele sunt în memorie și se resetează la restart, limitare acceptabilă pentru un demo cu o singură instanță.
 
 \section{Validarea mesajelor de eroare}
 \label{sec:case-errors}
@@ -67,9 +76,9 @@ Această abordare este importantă pentru un proiect real. Un sistem ML integrat
 \section{Observații din testare}
 \label{sec:case-observations}
 
-Testarea manuală a scos la iveală probleme care nu erau evidente din metricile offline. Prima problemă a fost uniformizarea predicțiilor unor modele. A doua a fost imaginea greșită pe \mobilede. A treia a fost aglomerarea istoricului. A patra a fost nevoia ca utilizatorul să aleagă metoda de combinare și toleranța.
+Testarea manuală și feedback-ul colegilor au scos la iveală probleme care nu erau evidente din metricile offline. Prima problemă a fost uniformizarea predicțiilor unor modele. A doua a fost imaginea greșită pe \mobilede. A treia a fost aglomerarea istoricului și pierderea contextului atunci când era păstrat doar un rezumat. A patra a fost nevoia ca utilizatorul să aleagă metoda de combinare și toleranța. Au fost cerute și explicații mai accesibile pentru termenii statistici, precum și o separare mai clară între concluzia principală și detaliile modelelor. Observația preliminară de utilizabilitate privind limitarea ratei a adăugat și o cerință operațională care nu era vizibilă în evaluarea modelelor.
 
-Aceste observații arată valoarea iterațiilor cu interfața reală. Pipeline-ul ML poate părea complet într-un notebook, dar aplicația finală expune fricțiuni pe care doar utilizarea efectivă le dezvăluie. În proiectul \project, fiecare observație a dus la o modificare concretă: log-preț, medie ponderată, filtrare de imagini, ștergere de istoric și controale în interfață.
+Aceste observații arată valoarea iterațiilor cu interfața reală. Pipeline-ul ML poate părea complet într-un notebook, dar aplicația finală expune fricțiuni pe care doar utilizarea efectivă le dezvăluie. În proiectul \project, fiecare observație a dus la o modificare concretă: log-preț, medie ponderată, filtrare de imagini, rapoarte complete în istoric, explicații contextuale, afișare progresivă, ajustări generale de UX și protecție împotriva cererilor excesive.
 
 \section{Concluziile studiilor de caz}
 \label{sec:case-conclusions}

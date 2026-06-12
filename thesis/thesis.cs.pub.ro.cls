@@ -57,6 +57,8 @@
 % Support for including graphics
 \usepackage{graphicx}
 \DeclareGraphicsExtensions{.pdf,.png,.jpg}
+\usepackage{float}
+\usepackage[section]{placeins}
 
 % Code listings support
 \usepackage{listings}
@@ -226,7 +228,7 @@
 % Usage: \fig{file}{label}{caption}
 %   TODO: references should point to the top of the image
 \newcommand{\fig}[4][]{
-\begin{figure}[htb]
+\begin{figure}[H]
 	\begin{center}
 		\includegraphics[#1]{#2}
 		\caption{#4 \label{#3}}

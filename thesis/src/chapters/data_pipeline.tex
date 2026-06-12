@@ -1,7 +1,9 @@
-\chapter{Colectarea și pregătirea datelor}
-\label{chapter:data}
+\section{Colectarea și pregătirea datelor}
+\label{sec:implementation-data}
 
-\section{Sursele de date}
+Implementarea componentei de date urmărește un flux complet, de la colectarea anunțurilor până la obținerea unui set coerent pentru antrenare. Subsecțiunile următoare descriu sursele, particularitățile scraperelor, schema comună, normalizarea, deduplicarea și verificările efectuate înaintea modelării.
+
+\subsection{Sursele de date}
 \label{sec:data-sources}
 
 Datele proiectului provin din anunțuri publice de pe \autovit\ și \mobilede. Alegerea acestor două surse are o justificare practică. \autovit\ este relevant pentru piața românească, iar \mobilede\ este una dintre platformele europene importante pentru autoturisme second-hand, inclusiv pentru cumpărătorii români care caută mașini din Germania.
@@ -33,7 +35,7 @@ Setul combinat folosit pentru evaluarea finală conține 9633 de rânduri păstr
     \end{tabular}
 \end{table}
 
-\section{Scraping pentru Autovit}
+\subsection{Scraping pentru Autovit}
 \label{sec:data-autovit}
 
 Pentru \autovit, scraperul a fost construit pornind de la paginile de căutare. Fiecare pagină conține mai multe anunțuri, iar structura HTML include informații suficiente pentru extragerea linkului, titlului, prețului, anului, kilometrajului și câtorva câmpuri tehnice. În unele cazuri, datele sunt disponibile și în structuri JSON incluse în pagină, ceea ce permite o extragere mai stabilă decât parsarea textului vizibil.
@@ -42,7 +44,7 @@ Fluxul de scraping salvează fiecare anunț ca obiect JSONL. Alegerea JSONL este
 
 În practică, \autovit\ a ridicat mai multe dificultăți. Prima dificultate a fost instabilitatea structurii paginilor. Numele claselor HTML și poziția câmpurilor se pot modifica fără avertisment, iar scraperul trebuie să fie tolerant la câmpuri lipsă. A doua dificultate a fost deduplicarea. Anunțurile promovate sau republicate pot apărea pe mai multe pagini, iar identificatorul de listing nu este întotdeauna suficient pentru eliminarea tuturor cazurilor similare. A treia dificultate a fost legată de imagini. Unele imagini sunt încărcate lazy, iar alte imagini pot reprezenta elemente de dealer, nu mașina propriu-zisă.
 
-\section{Scraping pentru mobile.de}
+\subsection{Scraping pentru mobile.de}
 \label{sec:data-mobilede}
 
 Integrarea \mobilede\ a fost mai dificilă decât integrarea \autovit. Site-ul are localizare pe mai multe limbi, pagini dinamice, protecții anti-bot și comportament diferit între paginile de căutare și paginile de detaliu. În multe încercări, cererile automate au returnat erori 401, 403 sau 429. Aceste coduri indică lipsă de autorizare, interdicție de acces sau limitare de rată.
@@ -61,16 +63,17 @@ Prin această metodă au fost citite 118 pagini de marcă sau model și au fost 
 
 Pentru ca aceste rânduri să fie folosite la antrenare, filtrarea finală a fost ajustată. Valorile numerice imposibile sunt eliminate în continuare, însă câmpurile tehnice lipsă, precum capacitatea cilindrică, nu mai duc automat la eliminarea rândului. Ele sunt imputate ulterior de pipeline-ul de preprocesare. Această schimbare este importantă deoarece paginile Markdown oferă preț, an, kilometraj și putere, dar nu întotdeauna detalii complete despre motor.
 
-\section{Schema datelor brute}
+\subsection{Schema datelor brute}
 \label{sec:data-schema}
 
 Fiecare rând brut conține câmpuri comune și câmpuri specifice sursei. Câmpurile comune sunt folosite ulterior pentru normalizare și modelare. \labelindexref{Tabelul}{tab:raw-fields} prezintă câteva exemple.
 
 \begin{table}[htb]
     \centering
+    \small
     \caption{Câmpuri extrase din anunțuri}
     \label{tab:raw-fields}
-    \begin{tabular}{lp{8cm}}
+    \begin{tabular}{@{}p{4.4cm}p{8.0cm}@{}}
         \toprule
         Câmp & Rol \\
         \midrule
@@ -88,7 +91,7 @@ Fiecare rând brut conține câmpuri comune și câmpuri specifice sursei. Câmp
     \end{tabular}
 \end{table}
 
-\section{Normalizare}
+\subsection{Normalizare}
 \label{sec:data-normalization}
 
 Datele brute sunt utile pentru audit, dar nu pot fi folosite direct în modele. Prețurile pot fi scrise cu separatori diferiți, kilometrajul poate conține text, combustibilul poate avea variante lingvistice, iar unele câmpuri pot lipsi. Normalizarea transformă aceste reprezentări într-un format comun.
@@ -97,14 +100,14 @@ Prețul este convertit în \texttt{price\_eur}. În datele curente, majoritatea 
 
 Normalizarea construiește și câmpuri auxiliare. \texttt{dedupe\_exact\_key} identifică duplicatele cu același ID de sursă. \texttt{dedupe\_fuzzy\_key} combină marca, modelul, anul, kilometrajul, prețul și vânzătorul într-o amprentă conservatoare. \texttt{completeness\_score} numără câte câmpuri relevante sunt prezente, fiind util pentru filtrarea rândurilor slabe.
 
-\section{Deduplicare}
+\subsection{Deduplicare}
 \label{sec:data-dedup}
 
 Deduplicarea are două niveluri. Primul nivel elimină duplicate exacte, folosind cheia de sursă și identificatorul anunțului. Al doilea nivel elimină duplicate probabile. Acesta este necesar deoarece același vehicul poate apărea cu identificatori diferiți sau poate fi republicat.
 
 Cheia fuzzy este construită astfel încât să fie conservatoare. Dacă două anunțuri au aceeași marcă, același model, același an, kilometraj foarte asemănător, preț foarte asemănător și același vânzător sau oraș, este probabil să fie același vehicul. În setul combinat extins, acest pas a eliminat 213 rânduri suplimentare după eliminarea duplicatelor exacte. Numărul a crescut față de experimentul inițial deoarece paginile SEO \mobilede\ pot afișa același anunț în mai multe pagini de marcă sau model.
 
-\section{Analiza exploratorie}
+\subsection{Analiza exploratorie}
 \label{sec:data-eda}
 
 Analiza exploratorie arată că datele sunt neuniforme. Distribuția prețurilor este asimetrică, cu multe anunțuri în zona 5000-25000 EUR și câteva vehicule premium cu valori mult mai mari. \labelindexref{Figura}{fig:price-distribution} ilustrează această distribuție.
@@ -123,7 +126,7 @@ Cele mai frecvente mărci sunt prezentate în \labelindexref{Figura}{fig:top-mak
 
 \fig[width=0.82\textwidth]{src/img/carvaluator/top_makes.png}{fig:top-makes}{Cele mai frecvente mărci în setul de date}
 
-\section{Pregătirea pentru antrenare}
+\subsection{Pregătirea pentru antrenare}
 \label{sec:data-training-ready}
 
 Setul final pentru antrenare nu include toate rândurile normalizate. Înainte de împărțirea train-test, pipeline-ul elimină exemple cu prețuri nerealiste, ani foarte vechi sau viitori nejustificați și valori tehnice extreme. Pentru antrenarea finală pe setul extins, raportul indică 9367 rânduri curate, dintre care 7493 au fost folosite la antrenare și 1874 la testare.

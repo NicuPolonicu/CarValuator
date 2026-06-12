@@ -9,9 +9,7 @@
 %\maketitle
 \input{template/titlepage.ro}
 
-\begin{abstract}
-\input{src/base/abstract}
-\end{abstract}
+\input{src/base/synopsis}
 
 \input{template/contents.pages}
 
@@ -20,10 +18,12 @@
 \end{frontmatter} % end roman numbering
 
 % Compact variant used only for thesis_small.pdf.
-\newgeometry{top=2.6cm, bottom=2.6cm, left=2.8cm, right=2.4cm}
-\small
-\setstretch{1.08}
-\setlength{\parskip}{0.35em}
+\newgeometry{top=2.0cm, bottom=2.0cm, left=2.1cm, right=2.1cm}
+\footnotesize
+\setstretch{1.0}
+\setlength{\parskip}{0.15em}
+\captionsetup{font=footnotesize}
+\lstset{basicstyle=\ttfamily\scriptsize, numberstyle=\tiny}
 
 \input{src/main}
 

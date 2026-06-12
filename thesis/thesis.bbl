@@ -1,5 +1,12 @@
 \begin{thebibliography}{10}
 
+\bibitem{acarom_martie_2024}
+{ACAROM}.
+\newblock Înmatriculările de autoturisme în românia - martie 2024.
+\newblock
+  \url{https://acarom.ro/inmatricularile-de-autoturisme-in-romania-martie-2024/},
+  2024.
+
 \bibitem{autovit_evaluare_blog}
 {Autovit.ro}.
 \newblock Evaluare autoturism: cum calculezi valoarea corectă a mașinii tale.
@@ -21,11 +28,6 @@ Leo Breiman.
 Harald Cram{\'e}r.
 \newblock {\em Mathematical Methods of Statistics}.
 \newblock Princeton University Press, 1946.
-
-\bibitem{cs_pub_templates}
-{cs-pub-ro}.
-\newblock Latex templates repository.
-\newblock \url{https://github.com/cs-pub-ro/templates}, 2026.
 
 \bibitem{fastapi_docs}
 {FastAPI}.

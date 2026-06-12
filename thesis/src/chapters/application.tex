@@ -1,119 +1,123 @@
-\chapter{Arhitectura aplicației}
+\chapter{Proiectarea aplicației}
 \label{chapter:application}
 
-\section{Vedere de ansamblu}
+\section{Obiective de proiectare}
+\label{sec:app-objectives}
+
+Proiectarea aplicației \project\ urmărește separarea clară între colectarea datelor, pregătirea lor, antrenarea modelelor și folosirea modelului într-o interfață web. Această separare este necesară deoarece cele patru activități au ritmuri diferite. Scraping-ul și antrenarea sunt operații offline, costisitoare și repetate controlat, în timp ce analiza unui link trebuie să fie o operație online, suficient de rapidă pentru utilizator.
+
+Sistemul a fost proiectat ca un monolit modular. Backend-ul FastAPI servește API-ul și fișierele statice HTML, CSS și JavaScript, iar modulele Python rămân independente la nivel logic. Alegerea reduce complexitatea deployment-ului pentru un prototip academic, fără să amestece responsabilitățile interne. Datasetul, bundle-ul de modele și baza SQLite sunt artefacte separate, configurabile prin variabile de mediu.
+
+Alte două obiective au fost trasabilitatea și toleranța la defecte. O predicție trebuie să poată fi explicată prin datele normalizate și estimările modelelor, iar o eroare produsă de un site extern nu trebuie să blocheze sesiunea sau interfața.
+
+\section{Arhitectura modulară}
 \label{sec:app-overview}
 
-\project\ este implementată ca aplicație web monolitică ușoară. Backend-ul FastAPI servește atât API-ul, cât și fișierele statice ale interfeței web. Această alegere simplifică deployment-ul, deoarece nu este necesar un server separat pentru frontend. Utilizatorul accesează aceeași aplicație pentru autentificare, introducerea linkului și vizualizarea rezultatului.
-
-Componentele principale sunt:
+\labelindexref{Figura}{fig:system-architecture} prezintă schema bloc a sistemului. Arhitectura conține următoarele module:
 
 \begin{itemize}
-    \item modulul de scraping, responsabil de extragerea datelor din linkuri \autovit\ și \mobilede;
-    \item modulul de normalizare, care transformă datele brute în câmpuri model-ready;
-    \item modulul de antrenare, care produce bundle-ul \texttt{best\_model.joblib}, metrici și grafice;
-    \item modulul de inferență, care aplică modelele pe un anunț live;
-    \item API-ul FastAPI, care expune rutele de autentificare, predicție, istoric și artefacte;
-    \item interfața web, scrisă în HTML, CSS și JavaScript;
-    \item baza de date SQLite pentru conturi, sesiuni și istoric.
+    \item \textbf{frontend web}, responsabil de autentificare, introducerea linkului, configurarea toleranței și afișarea rezultatului;
+    \item \textbf{API FastAPI}, care validează cererile, verifică sesiunea și orchestrează fluxul de analiză;
+    \item \textbf{scrapere specifice sursei}, care transformă un URL \autovit\ sau \mobilede\ într-o înregistrare brută;
+    \item \textbf{normalizare și feature engineering}, care convertește valorile eterogene într-o schemă comună;
+    \item \textbf{pipeline de antrenare}, care selectează caracteristici, compară algoritmi și salvează metrici;
+    \item \textbf{modul de inferență}, care încarcă bundle-ul și calculează estimările individuale și agregate;
+    \item \textbf{motor de similaritate}, care caută anunțuri apropiate în CSV-ul configurat;
+    \item \textbf{persistență SQLite}, folosită pentru utilizatori, sesiuni și istoricul analizelor;
+    \item \textbf{artefacte de deployment}, alcătuite din modelul comprimat, datasetul de similaritate și grafice.
 \end{itemize}
 
-\labelindexref{Figura}{fig:system-architecture} prezintă arhitectura logică a aplicației. Separarea dintre date, modele, API și interfață permite rularea locală pentru dezvoltare și rularea în cloud cu aceleași variabile de mediu.
+\fig[width=0.96\textwidth]{src/img/carvaluator/system_architecture.png}{fig:system-architecture}{Arhitectura modulară a sistemului \project}
 
-\fig[width=0.92\textwidth]{src/img/carvaluator/system_architecture.png}{fig:system-architecture}{Arhitectura sistemului \project}
+Legăturile dintre module au fost păstrate unidirecționale pe cât posibil. Interfața nu accesează direct modelele sau baza de date, iar scraperul nu decide verdictul. API-ul este punctul de coordonare, însă logica de modelare rămâne în modulul de inferență, ceea ce permite testarea sa și din linia de comandă.
 
-\section{Backend FastAPI}
-\label{sec:app-backend}
+\section{Cazuri de utilizare}
+\label{sec:app-use-cases}
 
-FastAPI a fost ales deoarece permite definirea rapidă a rutelor HTTP și a schemelor de request prin modele Pydantic \cite{fastapi_docs}. În proiect, endpoint-ul principal este \texttt{POST /predict}. El primește site-ul, linkul anunțului, pragul de toleranță, metoda de combinare a modelelor și numărul de anunțuri similare cerute.
+\begin{itemize}
+    \item \textbf{Crearea contului.} Vizitatorul introduce email, username și parolă. Sistemul validează datele, calculează hash-ul parolei, creează utilizatorul și deschide o sesiune.
+    \item \textbf{Autentificarea.} Utilizatorul furnizează emailul sau username-ul și parola. Dacă verificarea reușește, backend-ul creează un token de sesiune și îl transmite prin cookie HTTP-only.
+    \item \textbf{Analiza unui anunț.} Utilizatorul introduce linkul, metoda de agregare și toleranța. Sistemul identifică platforma, extrage sau caută local anunțul, normalizează caracteristicile, rulează modelele și afișează verdictul.
+    \item \textbf{Verificarea explicațiilor.} După predicție, utilizatorul vede mai întâi estimarea finală și verdictul. La cerere poate extinde predicțiile algoritmilor și graficele, iar butoanele de ajutor explică pe scurt metricile și regulile de agregare. Pagina separată de explicații oferă o referință accesibilă fără a aglomera raportul principal.
+    \item \textbf{Administrarea istoricului.} Utilizatorul deschide pagina dedicată istoricului, vizualizează analizele asociate contului și redeschide raportul complet. Raportul păstrează setările verdictului, metoda de agregare, estimările modelelor și sugestiile similare. Utilizatorul poate deschide anunțul original și poate șterge un element sau întregul istoric.
+    \item \textbf{Diagnosticarea deployment-ului.} Administratorul accesează ruta \texttt{/health} pentru a verifica existența modelului, a datasetului și versiunile principalelor biblioteci.
+\end{itemize}
 
-\begin{table}[htb]
+\section{Fluxul de execuție al unei predicții}
+\label{sec:app-predict-flow}
+
+\labelindexref{Figura}{fig:execution-sequence} este o diagramă UML de secvență pentru cazul principal. Frontend-ul trimite o singură cerere \texttt{POST /predict}. API-ul verifică sesiunea în SQLite, apelează scraperul potrivit, normalizează datele și transmite vectorul către modelele ML. După agregare, rezultatul este salvat în istoric și returnat ca JSON.
+
+\fig[width=0.98\textwidth]{src/img/carvaluator/execution_sequence.png}{fig:execution-sequence}{Diagramă UML de secvență pentru analiza unui anunț}
+
+Pentru \mobilede\ a fost proiectat un flux cu fallback. Mai întâi este căutat identificatorul anunțului în datasetul local, apoi se încearcă pagina de detaliu, iar căutarea live este ultima opțiune. Această ordine reduce timpul de răspuns și dependența de protecțiile anti-bot. În cloud, accesul live poate fi refuzat de platformă, astfel că anunțurile existente în snapshot-ul livrat sunt cazul cel mai stabil.
+
+\section{Proiectarea API-ului}
+\label{sec:app-api}
+
+FastAPI a fost ales deoarece permite definirea rutelor și validarea request-urilor prin modele Pydantic \cite{fastapi_docs}. Contractul principal primește sursa, URL-ul, toleranța, metoda de agregare și numărul maxim de anunțuri similare. Răspunsul conține prețul publicat, estimarea finală, verdictul, datele normalizate, predicțiile individuale și lista de comparații.
+
+\begin{table}[H]
     \centering
-    \caption{Rute principale ale aplicației}
+    \caption{Rutele proiectate pentru aplicația web}
     \label{tab:api-routes}
-    \begin{tabular}{lll}
+    \begin{tabular}{@{}p{3.3cm}p{1.6cm}p{7.1cm}@{}}
         \toprule
-        Rută & Metodă & Rol \\
+        Rută & Metodă & Responsabilitate \\
         \midrule
-        \texttt{/} & GET & Servește interfața web \\
-        \texttt{/health} & GET & Verifică existența modelului și a datasetului \\
-        \texttt{/auth/register} & POST & Creează cont utilizator \\
-        \texttt{/auth/login} & POST & Autentifică utilizatorul \\
-        \texttt{/auth/me} & GET & Returnează contul curent \\
-        \texttt{/auth/logout} & POST & Șterge sesiunea curentă \\
-        \texttt{/predict} & POST & Analizează un anunț și salvează istoricul \\
-        \texttt{/history} & GET & Listează analizele contului \\
-        \texttt{/history} & DELETE & Șterge istoricul contului \\
+        \texttt{/health} & GET & Verifică artefactele și versiunile runtime \\
+        \texttt{/auth/register} & POST & Creează un utilizator și o sesiune \\
+        \texttt{/auth/login} & POST & Verifică parola și creează sesiunea \\
+        \texttt{/auth/logout} & POST & Invalidează sesiunea curentă \\
+        \texttt{/predict} & POST & Execută analiza completă și salvează rezultatul \\
+        \texttt{/history} & GET & Returnează istoricul utilizatorului curent \\
+        \texttt{/history/\{id\}} & GET & Returnează raportul complet deținut de utilizator \\
+        \texttt{/history/\{id\}} & DELETE & Șterge o analiză deținută de utilizator \\
+        \texttt{/history} & DELETE & Șterge toate analizele contului \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-Rutele verifică utilizatorul curent printr-un cookie HTTP-only. Această alegere reduce riscul ca tokenul de sesiune să fie citit direct de JavaScript. Pentru deployment HTTPS, cookie-ul poate fi marcat ca secure prin variabila de mediu \texttt{CARVALUATOR\_COOKIE\_SECURE}.
+Codurile de stare separă erorile de utilizare de cele operaționale. Un URL invalid produce un răspuns 400, lipsa autentificării produce 401, iar eșecul unei surse externe este raportat separat de lipsa modelului. Această proiectare simplifică afișarea unui mesaj adecvat în frontend.
 
-\section{Autentificare și istoric}
-\label{sec:app-auth}
+\section{Proiectarea navigării}
+\label{sec:app-navigation}
 
-Aplicația permite crearea unui cont cu email, username și parolă. Parola nu este salvată în clar. Ea este transformată într-un hash PBKDF2 cu salt, iar baza de date stochează doar rezultatul necesar verificării. Sesiunile sunt salvate separat și au termen de expirare.
+Interfața este împărțită în trei pagini principale servite de același backend: evaluarea anunțului, istoricul contului și explicațiile. Separarea reduce încărcarea cognitivă a paginii de evaluare. Bara de navigare rămâne disponibilă pe toate paginile, iar starea autentificării este comună deoarece sesiunea este transmisă prin cookie.
 
-Fiecare predicție reușită este salvată în istoricul utilizatorului. Istoricul include titlul anunțului, linkul, prețul publicat, prețul estimat, verdictul și imaginea, atunci când aceasta este disponibilă. Utilizatorul poate șterge un element individual sau întregul istoric. Această funcționalitate a fost introdusă pentru a evita aglomerarea interfeței după mai multe teste.
+\labelindexref{Figura}{fig:route-matrix} organizează funcționalitățile de navigare după două criterii: numărul estimat de utilizatori care le folosesc și frecvența utilizării de către o singură persoană. Verificarea unui anunț reprezintă acțiunea centrală și este folosită frecvent de toți utilizatorii. Autentificarea este utilizată ocazional, de regulă o singură dată într-o sesiune, iar crearea contului este o acțiune rară, dar necesară fiecărui utilizator. Consultarea istoricului este folosită ocazional de mulți utilizatori, în timp ce pagina de explicații este accesată rar și de un grup mai restrâns. Matricea a fost folosită pentru a decide ce legături trebuie să rămână permanent în bara principală și ce funcții pot fi accesate contextual.
 
-\section{Fluxul unei predicții}
-\label{sec:app-predict-flow}
+\fig[width=0.94\textwidth]{src/img/carvaluator/route_matrix.png}{fig:route-matrix}{Matricea funcționalităților în funcție de răspândirea și frecvența utilizării}
 
-Atunci când utilizatorul introduce un link, aplicația parcurge următorii pași:
+\section{Proiectarea bazei de date}
+\label{sec:app-database}
 
-\begin{enumerate}
-    \item validează sesiunea utilizatorului;
-    \item identifică sursa linkului, \autovit\ sau \mobilede;
-    \item extrage detaliile anunțului folosind scraperul corespunzător;
-    \item normalizează câmpurile într-un rând compatibil cu modelul;
-    \item încarcă bundle-ul de modele din calea configurată;
-    \item calculează predicțiile individuale ale modelelor;
-    \item calculează predicția finală ponderată;
-    \item compară prețul publicat cu estimarea și produce verdictul;
-    \item caută anunțuri similare în CSV-ul configurat;
-    \item salvează rezultatul în istoricul contului și îl returnează către interfață.
-\end{enumerate}
+Baza SQLite are trei tabele și două relații \emph{one-to-many}, prezentate în \labelindexref{Figura}{fig:database-schema}. SQLite a fost suficient pentru prototip deoarece aplicația are un singur proces și un volum redus de scrieri. Structura poate fi migrată ulterior către PostgreSQL fără schimbarea conceptelor principale.
 
-Acest flux separă clar inferența de scraping. Dacă un anunț nu poate fi extras deoarece site-ul blochează cererea sau linkul a expirat, API-ul întoarce o eroare explicită. Dacă modelul lipsește, ruta \texttt{/health} indică problema.
+\fig[width=0.94\textwidth]{src/img/carvaluator/database_schema.png}{fig:database-schema}{Schema relațională pentru utilizatori, sesiuni și istoricul predicțiilor}
 
-\section{Interfața web}
-\label{sec:app-frontend}
+Tabela \texttt{users} păstrează identificatorul, emailul și username-ul unice, hash-ul parolei și momentul creării. Separarea parolei sub formă de hash face imposibilă recuperarea directă a parolei originale din bază.
 
-Interfața este în limba română și urmărește să fie cât mai directă. Pagina principală prezintă mesajul „CarValuator: deal or scam?”, un câmp pentru link, controale pentru metoda de combinare și toleranță, apoi rezultatul analizei. Nu sunt afișate elemente decorative inutile. Utilizatorul vede doar funcționalitățile relevante: autentificare, link, stare de încărcare, verdict, estimări, grafice de performanță și istoricul contului.
+Tabela \texttt{sessions} folosește tokenul aleator drept cheie primară și conține cheia externă \texttt{user\_id}, expirarea și momentul creării. Mai multe sesiuni pot aparține aceluiași cont, de exemplu pentru browsere diferite.
 
-În timpul analizei este afișată o animație de încărcare, deoarece scraping-ul live poate dura câteva secunde. Această animație este importantă pentru experiența utilizatorului: fără feedback vizual, aplicația ar părea blocată.
+Tabela \texttt{prediction\_history} păstrează câmpurile necesare afișării rapide, precum titlul, prețurile, verdictul și imaginea. Coloana \texttt{prediction\_json} păstrează răspunsul complet, inclusiv toleranța, metoda de agregare, datele normalizate, metricile modelelor și sugestiile similare. Astfel, analiza poate fi redeschisă identic fără o nouă cerere către site-ul extern. Ștergerea este condiționată de perechea \texttt{id} și \texttt{user\_id}, prevenind eliminarea istoricului altui cont.
 
-Interfața include mod întunecat și mod luminos. Alegerea este memorată local, iar designul folosește contraste puternice și carduri clare. Rezultatul afișează imaginea principală a anunțului, atunci când scraperul o poate identifica. Pentru \mobilede, această parte a necesitat filtrare suplimentară pentru a evita afișarea bannerelor dealerilor în locul fotografiei vehiculului.
+\section{Proiectarea pentru securitate și defecte}
+\label{sec:app-security-design}
 
-\section{Anunțuri similare}
-\label{sec:app-similar}
+Parolele sunt protejate prin PBKDF2 cu salt și număr mare de iterații, iar comparația hash-urilor este realizată în timp constant. Tokenurile de sesiune sunt generate cu o sursă criptografică și nu conțin date despre utilizator. Cookie-ul este HTTP-only, folosește politica SameSite și este marcat secure în deployment-ul HTTPS.
 
-Sugestiile de anunțuri similare sunt calculate din CSV-ul de antrenare sau din datasetul configurat pentru similaritate. Un anunț este considerat similar dacă are aceeași marcă, același model sau caracteristici apropiate, precum an, kilometraj, putere și combustibil. Scopul nu este să producă o predicție suplimentară, ci să ofere utilizatorului exemple concrete din piață.
+În fața rutelor API este proiectat un modul de limitare a ratei cu fereastră glisantă. Limita generală folosește adresa IP, autentificarea și înregistrarea folosesc tot IP-ul, iar predicțiile folosesc identificatorul contului. Separarea cheilor permite mai multor colegi să testeze aplicația de pe dispozitive diferite fără ca un singur cont să poată monopoliza inferența. La depășire, API-ul returnează statusul 429 și antetul \texttt{Retry-After}. Valorile sunt configurabile prin variabile de mediu, deoarece limitele potrivite pentru un demo diferă de cele ale unui serviciu cu resurse dedicate.
 
-În practică, sugestiile sunt utile pentru verificarea intuitivă a verdictului. Dacă aplicația estimează că un preț este prea mare, utilizatorul poate vedea anunțuri similare cu prețuri mai mici. Dacă estimează că prețul este prea mic, utilizatorul poate observa că alte anunțuri comparabile sunt semnificativ mai scumpe.
+Sursele externe sunt considerate componente nesigure. Scraperul poate primi răspunsuri incomplete, erori 403 sau pagini cu structură schimbată. Din acest motiv, câmpurile sunt opționale până la validare, iar inferența este pornită numai dacă există informațiile minime. Frontend-ul afișează o stare de încărcare, dar cererea trebuie să aibă un timeout și să închidă animația și în cazul unei erori.
 
-\section{Artefacte de model și grafice}
-\label{sec:app-artifacts}
+\section{Decizii de deployment}
+\label{sec:app-deployment-design}
 
-Training-ul produce grafice PNG, iar API-ul le servește prin ruta \texttt{/model-artifacts/\{filename\}}. Interfața afișează cel puțin graficul de performanță pe modele și graficul preț real față de preț estimat. Aceste grafice nu sunt necesare pentru un cumpărător grăbit, dar sunt utile pentru transparență și pentru demonstrația academică.
+Deployment-ul este proiectat pentru Render printr-un container Docker. Containerul instalează versiunile bibliotecilor folosite la serializarea modelului și browserul Chromium necesar fallback-ului Playwright \cite{playwright_docs}. Configurația citește portul furnizat de Render și căile artefactelor din variabile de mediu \cite{render_docs}.
 
-\section{Configurare și deployment}
-\label{sec:app-deployment}
+Modelul complet local conține șapte pipeline-uri și ocupă aproximativ 606 MB. Pentru serviciul gratuit a fost proiectat un bundle de aproximativ 1 MB care păstrează SVR, Ridge, KNN și Gradient Boosting. Datasetul de antrenare rămâne separat de snapshot-ul operațional folosit pentru sugestii. Snapshot-ul curent conține 2942 de anunțuri \autovit\ deduplicate, colectate la 12 iunie 2026, și este copiat identic în artefactele locale și Render. Reducerea bundle-ului scade memoria și timpul de pornire, însă înseamnă că interfața publică nu rulează Random Forest, Extra Trees și Voting Regressor.
 
-Aplicația este configurabilă prin variabile de mediu. Cele mai importante sunt:
+Baza SQLite este plasată în \texttt{/tmp} pentru demo, ceea ce înseamnă că utilizatorii și istoricul pot fi pierduți la restart. Pentru producție, proiectarea prevede înlocuirea cu o bază persistentă sau montarea unui disc. Limitarea este acceptabilă doar pentru demonstrația academică.
 
-\begin{itemize}
-    \item \texttt{CARVALUATOR\_MODEL\_BUNDLE}, calea către bundle-ul de modele;
-    \item \texttt{CARVALUATOR\_SIMILARITY\_CSV}, calea către datasetul de anunțuri similare;
-    \item \texttt{CARVALUATOR\_AUTH\_DB}, calea către baza SQLite pentru conturi și istoric;
-    \item \texttt{CARVALUATOR\_API\_HOST} și \texttt{CARVALUATOR\_API\_PORT}, folosite la rularea locală.
-\end{itemize}
-
-În cloud, aplicația citește variabila \texttt{PORT}, conform practicilor platformelor precum Render \cite{render_docs}.
-
-Pentru Render a fost adăugat un fișier \texttt{render.yaml}. Acesta definește build command-ul, start command-ul, calea către model și calea către datasetul de similaritate. Aplicația pornește prin \texttt{python -m carvaluator\_scraper.api}, se leagă la \texttt{0.0.0.0} și citește portul din variabila \texttt{PORT}, așa cum cer serviciile web Render \cite{render_docs}. Deoarece modelele complete pot fi foarte mari, a fost creat și un script de pregătire a artefactelor de deploy. Scriptul copiază modelul, CSV-ul și graficele într-un folder \texttt{deploy\_artifacts}. În configurația curentă, artefactul comprimat \texttt{best\_model.joblib} are aproximativ 204 MB, iar datasetul de similaritate este \texttt{combined\_reader\_20260606.csv}.
-
-Dimensiunea modelului este o limitare practică pentru deployment prin repository Git obișnuit. Pentru o publicare stabilă, artefactele mari ar trebui gestionate prin Git LFS, un release asset, stocare externă sau printr-un build step care le descarcă dintr-un spațiu controlat. În prototip, scriptul \texttt{scripts/prepare-render-artifacts.ps1} standardizează structura locală necesară pentru deployment și reduce riscul de căi configurate greșit.
-
-Pentru un demo gratuit, baza de date de conturi poate fi plasată în \texttt{/tmp}. Pentru un deployment persistent, este recomandat un disc persistent sau un serviciu de baze de date separat. Această distincție este importantă deoarece istoricul utilizatorilor nu trebuie pierdut într-o variantă publică stabilă.
+Contoarele sunt păstrate în memoria procesului. Soluția este suficientă pentru instanța unică de demonstrație și evită o dependență suplimentară. Într-o arhitectură cu mai multe instanțe, proiectarea trebuie extinsă cu un backend comun, de exemplu Redis, pentru ca toate procesele să observe aceleași contoare.

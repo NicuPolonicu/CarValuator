@@ -7,6 +7,7 @@ import os
 import re
 import secrets
 import sqlite3
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -49,6 +50,9 @@ class PredictionHistoryItem:
     verdict: str
     model_name: str
     delta_percent: float | None
+    threshold_percent: float | None
+    ensemble_method: str | None
+    similar_count: int
     created_at: str
 
     def to_dict(self) -> dict[str, Any]:
@@ -64,6 +68,9 @@ class PredictionHistoryItem:
             "verdict": self.verdict,
             "model_name": self.model_name,
             "delta_percent": self.delta_percent,
+            "threshold_percent": self.threshold_percent,
+            "ensemble_method": self.ensemble_method,
+            "similar_count": self.similar_count,
             "created_at": self.created_at,
         }
 
@@ -77,10 +84,18 @@ def get_auth_db_path() -> Path:
     return path.resolve()
 
 
-def get_connection() -> sqlite3.Connection:
+@contextmanager
+def get_connection():
     connection = sqlite3.connect(get_auth_db_path())
     connection.row_factory = sqlite3.Row
-    return connection
+    try:
+        yield connection
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+    finally:
+        connection.close()
 
 
 def initialize_auth_db() -> None:
@@ -241,6 +256,9 @@ def record_prediction_history(*, user_id: int, prediction: dict[str, Any]) -> Pr
         verdict=prediction.get("verdict") or "unknown",
         model_name=prediction.get("model_name") or "unknown_model",
         delta_percent=prediction.get("delta_percent"),
+        threshold_percent=prediction.get("threshold_percent"),
+        ensemble_method=_prediction_ensemble_method(prediction),
+        similar_count=len(prediction.get("similar_listings") or []),
         created_at=now,
     )
 
@@ -251,7 +269,8 @@ def list_prediction_history(*, user_id: int, limit: int = 20) -> list[Prediction
         rows = connection.execute(
             """
             SELECT id, user_id, source, url, title, image_url, actual_price_eur,
-                   predicted_price_eur, verdict, model_name, delta_percent, created_at
+                   predicted_price_eur, verdict, model_name, delta_percent,
+                   prediction_json, created_at
             FROM prediction_history
             WHERE user_id = ?
             ORDER BY datetime(created_at) DESC, id DESC
@@ -260,22 +279,31 @@ def list_prediction_history(*, user_id: int, limit: int = 20) -> list[Prediction
             (user_id, safe_limit),
         ).fetchall()
     return [
-        PredictionHistoryItem(
-            id=int(row["id"]),
-            user_id=int(row["user_id"]),
-            source=row["source"],
-            url=row["url"],
-            title=row["title"],
-            image_url=row["image_url"],
-            actual_price_eur=row["actual_price_eur"],
-            predicted_price_eur=row["predicted_price_eur"],
-            verdict=row["verdict"],
-            model_name=row["model_name"],
-            delta_percent=row["delta_percent"],
-            created_at=row["created_at"],
-        )
+        _history_item_from_row(row)
         for row in rows
     ]
+
+
+def get_prediction_history_detail(*, user_id: int, history_id: int) -> dict[str, Any] | None:
+    with get_connection() as connection:
+        row = connection.execute(
+            """
+            SELECT id, user_id, prediction_json, created_at
+            FROM prediction_history
+            WHERE id = ? AND user_id = ?
+            """,
+            (history_id, user_id),
+        ).fetchone()
+    if row is None:
+        return None
+
+    try:
+        prediction = json.loads(row["prediction_json"])
+    except (json.JSONDecodeError, TypeError):
+        prediction = {}
+    prediction["history_id"] = int(row["id"])
+    prediction["history_created_at"] = row["created_at"]
+    return prediction
 
 
 def delete_prediction_history_item(*, user_id: int, history_id: int) -> bool:
@@ -370,3 +398,34 @@ def verify_password(password: str, stored_hash: str) -> bool:
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def _history_item_from_row(row: sqlite3.Row) -> PredictionHistoryItem:
+    try:
+        prediction = json.loads(row["prediction_json"])
+    except (json.JSONDecodeError, TypeError):
+        prediction = {}
+    return PredictionHistoryItem(
+        id=int(row["id"]),
+        user_id=int(row["user_id"]),
+        source=row["source"],
+        url=row["url"],
+        title=row["title"],
+        image_url=row["image_url"],
+        actual_price_eur=row["actual_price_eur"],
+        predicted_price_eur=row["predicted_price_eur"],
+        verdict=row["verdict"],
+        model_name=row["model_name"],
+        delta_percent=row["delta_percent"],
+        threshold_percent=prediction.get("threshold_percent"),
+        ensemble_method=_prediction_ensemble_method(prediction),
+        similar_count=len(prediction.get("similar_listings") or []),
+        created_at=row["created_at"],
+    )
+
+
+def _prediction_ensemble_method(prediction: dict[str, Any]) -> str | None:
+    for estimate in prediction.get("model_estimates") or []:
+        if estimate.get("model") == "weighted_average" and estimate.get("weighting"):
+            return str(estimate["weighting"])
+    return None

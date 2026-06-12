@@ -7,6 +7,7 @@ from pathlib import Path
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -20,15 +21,24 @@ from carvaluator_scraper.auth import (
     delete_prediction_history_item,
     delete_session,
     get_current_user,
+    get_prediction_history_detail,
     initialize_auth_db,
     list_prediction_history,
     record_prediction_history,
 )
 from carvaluator_scraper.inference import predict_from_link
+from carvaluator_scraper.rate_limit import (
+    RateLimitDecision,
+    RateLimitPolicy,
+    RateLimitSettings,
+    SlidingWindowRateLimiter,
+    get_client_ip,
+    rate_limit_headers,
+)
 
 
 DEFAULT_MODEL_BUNDLE = Path("data/model_results_xl_log/best_model.joblib")
-DEFAULT_SIMILARITY_CSV = Path("data/autovit_xl.csv")
+DEFAULT_SIMILARITY_CSV = Path("data/similarity_current.csv")
 WEB_DIR = Path(__file__).resolve().parent / "web"
 
 
@@ -108,13 +118,42 @@ def _clear_session_cookie(response: Response) -> None:
     response.delete_cookie(key=SESSION_COOKIE_NAME, path="/", samesite="lax")
 
 
+def _enforce_rate_limit(
+    *,
+    limiter: SlidingWindowRateLimiter,
+    settings: RateLimitSettings,
+    scope: str,
+    key: str,
+    policy: RateLimitPolicy,
+    response: Response,
+    message: str,
+) -> RateLimitDecision | None:
+    if not settings.enabled or not policy.enabled:
+        return None
+    decision = limiter.check(scope=scope, key=key, policy=policy)
+    headers = rate_limit_headers(decision)
+    if not decision.allowed:
+        raise HTTPException(
+            status_code=429,
+            detail=f"{message} Reincearca in {decision.retry_after_seconds} secunde.",
+            headers=headers,
+        )
+    for name, value in headers.items():
+        response.headers[name] = value
+    return decision
+
+
 def create_app() -> FastAPI:
     initialize_auth_db()
+    rate_limit_settings = RateLimitSettings.from_env()
+    rate_limiter = SlidingWindowRateLimiter()
     app = FastAPI(
         title="CarValuator API",
         version="0.1.0",
         description="Small inference API for scoring used-car listing prices.",
     )
+    app.state.rate_limit_settings = rate_limit_settings
+    app.state.rate_limiter = rate_limiter
 
     allow_origins = _allowed_origins()
     app.add_middleware(
@@ -126,8 +165,54 @@ def create_app() -> FastAPI:
     )
     app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")
 
+    @app.middleware("http")
+    async def global_rate_limit(request: Request, call_next):
+        if (
+            not rate_limit_settings.enabled
+            or not rate_limit_settings.global_policy.enabled
+            or request.url.path in {"/", "/istoric", "/explicatii"}
+            or request.url.path.startswith("/static/")
+        ):
+            return await call_next(request)
+
+        client_ip = get_client_ip(
+            request,
+            trust_proxy_headers=rate_limit_settings.trust_proxy_headers,
+        )
+        decision = rate_limiter.check(
+            scope="global",
+            key=client_ip,
+            policy=rate_limit_settings.global_policy,
+        )
+        headers = rate_limit_headers(decision, prefix="X-RateLimit-Global")
+        if not decision.allowed:
+            headers["Retry-After"] = str(decision.retry_after_seconds)
+            return JSONResponse(
+                status_code=429,
+                content={
+                    "detail": (
+                        "Prea multe cereri trimise catre aplicatie. "
+                        f"Reincearca in {decision.retry_after_seconds} secunde."
+                    )
+                },
+                headers=headers,
+            )
+
+        response = await call_next(request)
+        for name, value in headers.items():
+            response.headers[name] = value
+        return response
+
     @app.get("/", include_in_schema=False)
     def frontend() -> FileResponse:
+        return FileResponse(WEB_DIR / "index.html")
+
+    @app.get("/istoric", include_in_schema=False)
+    def history_frontend() -> FileResponse:
+        return FileResponse(WEB_DIR / "index.html")
+
+    @app.get("/explicatii", include_in_schema=False)
+    def explanations_frontend() -> FileResponse:
         return FileResponse(WEB_DIR / "index.html")
 
     @app.get("/health")
@@ -146,6 +231,7 @@ def create_app() -> FastAPI:
                 "scikit_learn": package_version("scikit-learn"),
                 "playwright": package_version("playwright"),
             },
+            "rate_limits": rate_limit_settings.to_dict(),
             "model_artifacts": {
                 "model_performance": (model_artifact_dir / "model_performance.png").exists(),
                 "actual_vs_predicted": (model_artifact_dir / "actual_vs_predicted.png").exists(),
@@ -163,14 +249,32 @@ def create_app() -> FastAPI:
         return FileResponse(path)
 
     @app.post("/auth/register")
-    def register(payload: RegisterRequest, response: Response) -> dict[str, object]:
+    def register(payload: RegisterRequest, request: Request, response: Response) -> dict[str, object]:
+        _enforce_rate_limit(
+            limiter=rate_limiter,
+            settings=rate_limit_settings,
+            scope="register",
+            key=get_client_ip(request, trust_proxy_headers=rate_limit_settings.trust_proxy_headers),
+            policy=rate_limit_settings.register_policy,
+            response=response,
+            message="Ai creat prea multe conturi de la aceasta adresa IP.",
+        )
         user = create_user(email=payload.email, username=payload.username, password=payload.password)
         token, expires_at = create_session(user.id)
         _attach_session_cookie(response, token, expires_at)
         return {"user": user.to_dict()}
 
     @app.post("/auth/login")
-    def login(payload: LoginRequest, response: Response) -> dict[str, object]:
+    def login(payload: LoginRequest, request: Request, response: Response) -> dict[str, object]:
+        _enforce_rate_limit(
+            limiter=rate_limiter,
+            settings=rate_limit_settings,
+            scope="login",
+            key=get_client_ip(request, trust_proxy_headers=rate_limit_settings.trust_proxy_headers),
+            policy=rate_limit_settings.login_policy,
+            response=response,
+            message="Prea multe incercari de autentificare de la aceasta adresa IP.",
+        )
         user = authenticate_user(identifier=payload.identifier, password=payload.password)
         if user is None:
             raise HTTPException(status_code=401, detail="Email/username sau parola incorecta.")
@@ -200,15 +304,35 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=404, detail="Analiza nu exista in istoricul acestui cont.")
         return {"ok": True, "deleted": 1}
 
+    @app.get("/history/{history_id}")
+    def history_detail(history_id: int, user: AuthUser = Depends(get_current_user)) -> dict[str, object]:
+        prediction = get_prediction_history_detail(user_id=user.id, history_id=history_id)
+        if prediction is None:
+            raise HTTPException(status_code=404, detail="Analiza nu exista in istoricul acestui cont.")
+        return {"prediction": prediction}
+
     @app.delete("/history")
     def delete_history(user: AuthUser = Depends(get_current_user)) -> dict[str, object]:
         deleted = delete_all_prediction_history(user_id=user.id)
         return {"ok": True, "deleted": deleted}
 
     @app.post("/predict")
-    def predict(request: PredictRequest, user: AuthUser = Depends(get_current_user)) -> dict[str, object]:
-        model_bundle = _resolve_model_bundle_path(request.model_bundle_path)
-        similarity_csv = _resolve_similarity_csv_path(request.similarity_csv_path)
+    def predict(
+        payload: PredictRequest,
+        response: Response,
+        user: AuthUser = Depends(get_current_user),
+    ) -> dict[str, object]:
+        _enforce_rate_limit(
+            limiter=rate_limiter,
+            settings=rate_limit_settings,
+            scope="predict",
+            key=str(user.id),
+            policy=rate_limit_settings.predict_policy,
+            response=response,
+            message="Ai trimis prea multe cereri de analiza pentru acest cont.",
+        )
+        model_bundle = _resolve_model_bundle_path(payload.model_bundle_path)
+        similarity_csv = _resolve_similarity_csv_path(payload.similarity_csv_path)
         if not model_bundle.exists():
             raise HTTPException(
                 status_code=500,
@@ -217,13 +341,13 @@ def create_app() -> FastAPI:
 
         try:
             prediction = predict_from_link(
-                site=request.site,
-                url=request.url,
+                site=payload.site,
+                url=payload.url,
                 model_bundle_path=model_bundle,
-                threshold_percent=request.threshold_percent,
+                threshold_percent=payload.threshold_percent,
                 similarity_csv_path=similarity_csv,
-                similar_limit=request.similar_limit,
-                ensemble_method=request.ensemble_method,
+                similar_limit=payload.similar_limit,
+                ensemble_method=payload.ensemble_method,
             )
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc

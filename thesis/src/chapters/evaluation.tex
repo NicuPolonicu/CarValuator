@@ -1,14 +1,16 @@
-\chapter{Evaluare experimentală}
-\label{chapter:evaluation}
+\section{Evaluare experimentală}
+\label{sec:testing-evaluation}
 
-\section{Configurația experimentului}
+Evaluarea experimentală reunește măsurarea performanței modelelor, analiza erorilor și verificarea comportamentului aplicației pe anunțuri reale. Rezultatele sunt interpretate atât statistic, cât și prin comparație cu indicatorii oferiți de platformele studiate.
+
+\subsection{Configurația experimentului}
 \label{sec:evaluation-setup}
 
-Evaluarea finală a fost realizată pe setul combinat extins \texttt{combined\_reader\_20260606.csv}. După curățarea finală aplicată de pipeline-ul de antrenare, au rămas 9367 exemple. Împărțirea train-test a folosit 80\% pentru antrenare și 20\% pentru testare, rezultând 7493 rânduri de antrenare și 1874 rânduri de test.
+Evaluarea finală a fost realizată pe setul combinat extins, format din 9633 de anunțuri. După curățarea finală aplicată de pipeline-ul de antrenare, au rămas 9367 exemple. Împărțirea train-test a folosit 80\% pentru antrenare și 20\% pentru testare, rezultând 7493 rânduri de antrenare și 1874 rânduri de test.
 
 Toate modelele au fost antrenate pe ținta logaritmică a prețului. Predicțiile au fost convertite înapoi în EUR înainte de calcularea metricilor finale. Această alegere face rezultatele mai ușor de interpretat și permite compararea directă cu prețurile reale ale anunțurilor.
 
-\section{Rezultatele modelelor}
+\subsection{Rezultatele modelelor}
 \label{sec:evaluation-results}
 
 \labelindexref{Tabelul}{tab:model-results} prezintă rezultatele principale. Cel mai bun rezultat global a fost obținut de ansamblul de votare, cu RMSE de 4602 EUR, MAE de 2696 EUR și \(R^2 = 0.9231\). SVR RBF a rămas competitiv, cu \(R^2 = 0.9158\), iar Extra Trees a obținut \(R^2 = 0.9095\). Față de experimentul anterior, \(R^2\) maxim este ușor mai mic, dar testul este mai realist deoarece include un volum mult mai mare de anunțuri \mobilede\ și o distribuție mai eterogenă.
@@ -40,7 +42,7 @@ Toate modelele au fost antrenate pe ținta logaritmică a prețului. Predicțiil
 
 Rezultatele arată că ansamblul de votare oferă cea mai bună stabilitate pe setul extins. SVR RBF rămâne foarte bun, dar modelele de arbori contribuie la reducerea erorii atunci când sunt combinate cu modele sensibile la distanță. Ridge are în continuare MAE competitiv, dar \(R^2\) mai slab, semn că relațiile din setul extins sunt mai puțin liniare decât în experimentul dominat de \autovit.
 
-\section{Analiza predicțiilor}
+\subsection{Analiza predicțiilor}
 \label{sec:evaluation-predictions}
 
 \labelindexref{Figura}{fig:actual-predicted} arată relația dintre prețurile reale și cele estimate de modelul ales. Punctele sunt concentrate în jurul diagonalei, ceea ce indică predicții rezonabile pentru majoritatea anunțurilor. Totuși, se observă și cazuri de subestimare pentru vehicule foarte scumpe, în special modele premium sau configurații rare.
@@ -51,7 +53,7 @@ Rezultatele arată că ansamblul de votare oferă cea mai bună stabilitate pe s
 
 \fig[width=0.90\textwidth]{src/img/carvaluator/residual_analysis.png}{fig:residual-analysis}{Analiza reziduurilor pentru modelul ales}
 
-\section{Corelații și interpretabilitate}
+\subsection{Corelații și interpretabilitate}
 \label{sec:evaluation-correlations}
 
 Matricea de corelații din \labelindexref{Figura}{fig:correlation} confirmă câteva relații așteptate. Anul și vârsta vehiculului sunt puternic legate de preț. Kilometrajul este corelat negativ cu prețul, iar puterea are corelație pozitivă. Capacitatea cilindrică și puterea sunt de asemenea legate între ele.
@@ -60,14 +62,14 @@ Matricea de corelații din \labelindexref{Figura}{fig:correlation} confirmă câ
 
 Interpretabilitatea este limitată de folosirea one-hot encoding și de modelele neliniare. Totuși, selecția statistică oferă un nivel de explicație înainte de antrenare. Utilizatorul final nu vede direct importanța caracteristicilor, dar aplicația îi arată anunțuri similare, ceea ce face verdictul mai ușor de verificat intuitiv.
 
-\section{Testare prin aplicație}
+\subsection{Testare prin aplicație}
 \label{sec:evaluation-app-tests}
 
 Testarea aplicației a inclus linkuri \autovit\ și \mobilede. Pentru \autovit, fluxul a fost în general stabil: linkul este analizat, imaginea principală apare corect, iar rezultatul este salvat în istoric. Pentru \mobilede, fluxul a necesitat mai multe ajustări. Anumite linkuri de detaliu nu erau recunoscute inițial deoarece forma URL-ului diferă între limbi și pagini. Ulterior, integrarea a fost extinsă pentru linkuri de tip \texttt{/ro/vehicule/detalii.html?id=...}.
 
 O observație importantă din testarea manuală a fost că unele modele produceau predicții foarte apropiate pentru mașini foarte diferite. Această problemă a fost vizibilă mai ales la SVR și KNN în primele variante de model. Cauzele posibile au fost scalarea, datele insuficiente pentru anumite zone de preț și distribuția dezechilibrată a țintei. Antrenarea pe log-preț și folosirea unui set mai mare au redus această problemă, dar nu au eliminat complet riscul pentru anunțuri extreme.
 
-\section{Comparație cu indicatorii platformelor}
+\subsection{Comparație cu indicatorii platformelor}
 \label{sec:evaluation-platform-comparison}
 
 Pentru a verifica dacă rezultatele au sens practic, am comparat câteva exemple din setul de test cu etichetele disponibile în datele sursă. Etichetele platformelor au fost normalizate în trei clase: \texttt{fair}, \texttt{low} și \texttt{high}. Ele nu sunt perfect echivalente cu verdictul \project, deoarece fiecare platformă folosește propriile reguli, propriile seturi de comparație și propriile praguri. Totuși, comparația este utilă ca verificare de plauzibilitate.
@@ -93,23 +95,23 @@ Pentru a verifica dacă rezultatele au sens practic, am comparat câteva exemple
 
 Exemplele arată că aplicația se comportă coerent în cazurile unde diferența este mare. Pentru Volkswagen Golf VII, prețul listat este cu aproximativ 22.7\% peste estimare, deci verdictul \project\ devine „prea mare”, în acord cu eticheta \texttt{high}. Pentru exemplele cu diferențe de aproximativ 8-10\%, verdictul rămâne „preț corect” deoarece pragul implicit este 15\%. Această diferență nu este o contradicție, ci rezultatul pragului configurabil: dacă utilizatorul alege 10\%, unele cazuri marginale pot trece în zona „prea mic” sau „prea mare”.
 
-\section{Calitatea setului de date}
+\subsection{Calitatea setului de date}
 \label{sec:evaluation-data-quality}
 
 Calitatea datelor este principalul factor care limitează precizia. Pentru \autovit, multe câmpuri importante lipsesc sau sunt neuniforme. De exemplu, transmisia și caroseria nu au fost suficient de complete în setul folosit. Pentru \mobilede, volumul de exemple este mult mai bun după metoda Markdown, iar puterea este extrasă pentru majoritatea rândurilor. Capacitatea cilindrică a fost recuperată parțial din titlurile care includ explicit valori precum \texttt{2.0 TDI} sau \texttt{1.5 TSI}, însă transmisia, caroseria și o parte din câmpurile tehnice lipsesc frecvent. În plus, datele provin din momente diferite și pot reflecta condiții temporare ale pieței.
 
 Modelele învață prețurile publicate, nu prețurile finale de tranzacție. Această diferență este esențială. Un anunț poate avea preț negociabil, iar prețul real de vânzare poate fi mai mic. Prin urmare, \project\ estimează corectitudinea față de piața anunțurilor, nu față de tranzacțiile efective.
 
-\section{Acuratețe și utilitate practică}
+\subsection{Acuratețe și utilitate practică}
 \label{sec:evaluation-usefulness}
 
 Un MAE de aproximativ 2700 EUR pentru cel mai bun model după această metrică este rezonabil pentru un prototip bazat pe scraping public, dar nu suficient pentru decizii financiare fără verificare suplimentară. Utilitatea aplicației este mai mare ca instrument de filtrare preliminară. Ea poate identifica rapid anunțuri care merită investigate sau anunțuri care par mult în afara pieței.
 
 Pentru mașini comune, cu multe exemple în setul de date, estimările sunt mai credibile. Pentru mașini rare, modele premium, vehicule modificate sau anunțuri cu dotări speciale, eroarea poate crește. De aceea, interfața afișează și predicțiile individuale ale modelelor, nu doar media finală. Dacă modelele nu sunt de acord, utilizatorul poate interpreta rezultatul cu mai multă prudență.
 
-\section{Reproductibilitate}
+\subsection{Reproductibilitate}
 \label{sec:evaluation-reproducibility}
 
-Fluxul experimental este reproductibil prin comenzile din \labelindexref{Apendicele}{appendix:commands}. Datele brute sunt salvate în JSONL, rapoartele de normalizare sunt salvate în JSON, iar antrenarea produce fișiere CSV cu predicțiile fiecărui model. Această structură permite refacerea graficelor și verificarea deciziilor de filtrare.
+Fluxul experimental este reproductibil prin comenzile din \labelindexref{Anexa}{appendix:commands}. Datele brute sunt salvate în JSONL, rapoartele de normalizare sunt salvate în JSON, iar antrenarea produce fișiere CSV cu predicțiile fiecărui model. Această structură permite refacerea graficelor și verificarea deciziilor de filtrare.
 
 Limitarea practică este că scraping-ul live nu este perfect reproductibil. Anunțurile dispar, prețurile se schimbă, iar site-urile modifică structura paginilor. Din acest motiv, seturile JSONL salvate local sunt tratate ca snapshot-uri experimentale.

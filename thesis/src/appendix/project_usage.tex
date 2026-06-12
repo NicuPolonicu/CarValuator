@@ -54,24 +54,61 @@ python -m carvaluator_scraper.cli train-models data\combined_reader_20260606.csv
 
 \begin{lstlisting}[language=bash,caption={Pornirea serverului local},label={lst:start-server}]
 $env:CARVALUATOR_MODEL_BUNDLE = "data\model_results_combined_reader_20260606_log\best_model.joblib"
-$env:CARVALUATOR_SIMILARITY_CSV = "data\combined_reader_20260606.csv"
+$env:CARVALUATOR_SIMILARITY_CSV = "data\similarity_current.csv"
 $env:CARVALUATOR_API_PORT = "8017"
 .\.venv\Scripts\python.exe -m carvaluator_scraper.api
 \end{lstlisting}
 
 După pornire, aplicația rulează local la adresa \texttt{http://127.0.0.1:8017}. Ruta \texttt{/health} verifică dacă modelul, datasetul de similaritate și graficele principale sunt disponibile.
 
+\section{Reîmprospătarea sugestiilor similare}
+
+Anunțurile din baza de similaritate pot expira chiar dacă rândurile rămân valide pentru analiza statistică. Din acest motiv, lotul folosit de KNN trebuie actualizat periodic, separat de antrenarea modelelor. Comanda următoare colectează anunțuri \autovit\ curente, normalizează și deduplică rezultatul, arhivează fișierele cu timestamp, actualizează \texttt{data/similarity\_current.csv} și repornește serverul:
+
+\begin{lstlisting}[language=bash,caption={Actualizarea locală a lotului de sugestii},label={lst:refresh-similarity-local}]
+.\scripts\refresh-similarity.ps1 -Pages 100 -RestartServer
+\end{lstlisting}
+
+Actualizarea nu modifică estimarea de preț și nu reantrenează modelele. Ea schimbă numai mulțimea de candidați din care motorul KNN selectează anunțurile similare. Rapoartele deja salvate în istoricul conturilor păstrează sugestiile existente la momentul analizei.
+
+Pentru ca același lot să fie inclus și în deployment-ul Render se folosește opțiunea suplimentară:
+
+\begin{lstlisting}[language=bash,caption={Actualizarea sugestiilor locale și a artefactelor Render},label={lst:refresh-similarity-render}]
+.\scripts\refresh-similarity.ps1 -Pages 100 -UpdateRenderArtifacts -RestartServer
+\end{lstlisting}
+
+Această comandă actualizează doar folderul local \texttt{deploy\_artifacts}. Site-ul public se schimbă abia după commit, push și redeploy, deoarece instanța Render nu poate citi fișierele din folderul local \texttt{data}.
+
 \section{Pregătirea pentru Render}
 
 \begin{lstlisting}[language=bash,caption={Pregătirea artefactelor pentru deployment Render},label={lst:render-artifacts}]
-.\scripts\prepare-render-artifacts.ps1 -Clean -CompressModel
+.\scripts\prepare-render-artifacts.ps1 -Clean
 \end{lstlisting}
 
-Comanda creează folderul \texttt{deploy\_artifacts}, copiază modelul \texttt{best\_model.joblib}, datasetul \texttt{combined\_reader\_20260606.csv} și graficele generate la antrenare. Fișierul \texttt{render.yaml} folosește aceste căi:
+Comanda creează folderul \texttt{deploy\_artifacts}, copiază modelul \texttt{best\_model.joblib}, datasetul combinat și graficele generate la antrenare. Fișierul \texttt{render.yaml} folosește următoarele căi:
 
 \begin{lstlisting}[language=bash,caption={Variabile principale pentru Render},label={lst:render-vars}]
 CARVALUATOR_MODEL_BUNDLE=deploy_artifacts/model_results/best_model.joblib
-CARVALUATOR_SIMILARITY_CSV=deploy_artifacts/datasets/combined_reader_20260606.csv
+CARVALUATOR_SIMILARITY_CSV=deploy_artifacts/datasets/similarity_current.csv
+CARVALUATOR_TRUST_PROXY_HEADERS=1
+CARVALUATOR_RATE_LIMIT_ENABLED=1
+CARVALUATOR_RATE_LIMIT_GLOBAL_REQUESTS=60
+CARVALUATOR_RATE_LIMIT_GLOBAL_WINDOW_SECONDS=60
+CARVALUATOR_RATE_LIMIT_LOGIN_REQUESTS=10
+CARVALUATOR_RATE_LIMIT_LOGIN_WINDOW_SECONDS=900
+CARVALUATOR_RATE_LIMIT_REGISTER_REQUESTS=3
+CARVALUATOR_RATE_LIMIT_REGISTER_WINDOW_SECONDS=3600
+CARVALUATOR_RATE_LIMIT_PREDICT_REQUESTS=5
+CARVALUATOR_RATE_LIMIT_PREDICT_WINDOW_SECONDS=60
 \end{lstlisting}
 
-Pentru un deployment stabil, artefactele mari trebuie versionate sau livrate separat. Modelul comprimat al experimentului final are aproximativ 204 MB, ceea ce poate fi prea mult pentru un flux simplu prin GitHub fără Git LFS sau fără un mecanism extern de descărcare.
+Valorile de rate limiting corespund limitelor generale, de login, înregistrare și predicție. Variabila pentru antetele proxy trebuie activată numai în spatele proxy-ului Render; local poate rămâne dezactivată. Pentru deployment, scriptul produce un bundle redus de aproximativ 1 MB, care păstrează SVR, Ridge, KNN și Gradient Boosting. Modelul complet local, cu șapte pipeline-uri, are aproximativ 606 MB și nu este încărcat pe planul gratuit Render. Configurația curentă folosește Docker pentru a fixa versiunile scikit-learn și pentru a instala Chromium:
+
+\begin{lstlisting}[language=bash,caption={Fișierele folosite de Blueprint-ul Render},label={lst:render-docker}]
+Dockerfile
+render.yaml
+deploy_artifacts/model_results/best_model.joblib
+deploy_artifacts/datasets/similarity_current.csv
+\end{lstlisting}
+
+După publicarea modificărilor în GitHub se folosește opțiunea de ștergere a cache-ului urmată de redeploy. Ruta \texttt{/health} trebuie să confirme existența modelului și a datasetului, precum și versiunile scikit-learn 1.8.0 și Playwright 1.58.0. Reîmprospătarea lotului reduce probabilitatea linkurilor expirate, dar nu o poate elimina complet, deoarece un anunț se poate închide imediat după colectare.

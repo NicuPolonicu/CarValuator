@@ -1,7 +1,9 @@
-\chapter{Fundamentare teoretică și lucrări conexe}
-\label{chapter:background}
+\section{Fundamentare teoretică și lucrări conexe}
+\label{sec:market-background}
 
-\section{Evaluarea prețurilor ca problemă de regresie}
+Această secțiune prezintă conceptele pe care se bazează soluția propusă: formularea estimării ca problemă de regresie, familiile de modele analizate, transformarea țintei, selecția caracteristicilor și metricile de evaluare. Sunt discutate și particularitățile colectării automate a datelor, împreună cu tehnologiile folosite în implementare.
+
+\subsection{Evaluarea prețurilor ca problemă de regresie}
 \label{sec:background-regression}
 
 Estimarea prețului unui autoturism second-hand poate fi formulată ca o problemă de regresie supravegheată. Pentru fiecare anunț există un vector de caracteristici \(x\), format din informații precum anul, kilometrajul, puterea, combustibilul și marca, și o valoare țintă \(y\), reprezentată de prețul publicat. Scopul modelului este să aproximeze o funcție \(f(x)\) care produce o estimare apropiată de \(y\).
@@ -10,7 +12,7 @@ Această formulare este inspirată de teoria prețurilor hedonice, unde prețul 
 
 Regresia nu poate captura toate elementele care influențează valoarea reală. Starea caroseriei, istoricul accidentelor, calitatea reparațiilor, numărul de proprietari, dotările exacte sau încrederea în vânzător sunt informații greu de extras automat. De aceea, predicția trebuie interpretată ca estimare statistică, nu ca expertiză tehnică.
 
-\section{Modele folosite}
+\subsection{Modele folosite}
 \label{sec:background-models}
 
 Proiectul compară mai multe familii de modele. Alegerea nu urmărește doar obținerea celui mai bun scor, ci și observarea comportamentului modelelor pe date tabulare reale, incomplete și neuniforme.
@@ -25,10 +27,12 @@ Random Forest construiește un ansamblu de arbori de decizie antrenați pe eșan
 
 Extra Trees introduce o randomizare mai puternică în alegerea pragurilor de împărțire, reducând varianța și crescând diversitatea arborilor \cite{geurts2006extremely}. Gradient Boosting construiește arbori secvențial, fiecare încercând să corecteze erorile rundei precedente \cite{friedman2001greedy}. În final, Voting Regressor combină estimările mai multor modele, încercând să reducă dependența de o singură ipoteză.
 
-\section{Transformarea logaritmică a prețului}
+\subsection{Transformarea logaritmică a prețului}
 \label{sec:background-log}
 
 Prețurile autoturismelor sunt distribuite asimetric. Majoritatea anunțurilor se află în zona medie a pieței, în timp ce un număr mic de vehicule premium sau foarte noi au prețuri mult mai mari. Dacă modelul este antrenat direct pe preț, exemplele scumpe pot domina funcția de eroare.
+
+Această asimetrie poate fi observată în \labelindexref{Figura}{fig:price-distribution}, unde cea mai mare parte a anunțurilor este concentrată în intervalele inferioare și medii de preț, iar valorile ridicate formează o coadă lungă a distribuției.
 
 Pentru a reduce această problemă, pipeline-ul folosește ținta:
 
@@ -44,7 +48,7 @@ După predicție, valoarea este readusă în EUR folosind:
 
 Această transformare are două avantaje. În primul rând, comprimă intervalul valorilor și face erorile relative mai echilibrate. În al doilea rând, reduce tendința modelelor de a supraestima mașinile ieftine sau de a subestima exagerat mașinile foarte scumpe. În evaluarea proiectului, antrenarea pe log-preț a produs predicții mai stabile decât primele încercări pe preț brut.
 
-\section{Selecția caracteristicilor}
+\subsection{Selecția caracteristicilor}
 \label{sec:background-feature-selection}
 
 Seturile de date obținute prin scraping conțin multe câmpuri, însă nu toate sunt utile pentru predicție. Unele câmpuri lipsesc frecvent, altele sunt prea specifice, iar altele au legătură slabă cu prețul. Pentru a evita introducerea de zgomot, pipeline-ul aplică o selecție de caracteristici înainte de modelare.
@@ -53,14 +57,14 @@ Pentru variabile numerice se folosește corelația Pearson, o măsură clasică 
 
 Selecția nu este tratată ca adevăr absolut. De exemplu, transmisia și tipul de caroserie sunt caracteristici importante în lumea reală, dar în setul combinat disponibil ele apar foarte rar pentru \autovit. Dacă o coloană are puține valori completate, testul statistic poate decide eliminarea ei nu pentru că este irelevantă conceptual, ci pentru că datele curente nu permit estimarea efectului.
 
-\section{Metrici de evaluare}
+\subsection{Metrici de evaluare}
 \label{sec:background-metrics}
 
 Pentru evaluare sunt folosite trei metrici. RMSE penalizează mai mult erorile mari, fiind util pentru a observa cazurile în care modelul ratează puternic. MAE măsoară eroarea absolută medie și este mai ușor de interpretat în EUR. \(R^2\) exprimă proporția variației țintei explicată de model, comparativ cu o predicție constantă bazată pe medie \cite{sklearn_metrics}.
 
 În contextul aplicației, MAE este deosebit de importantă deoarece utilizatorul gândește în diferențe concrete de bani. O eroare de 3000 EUR poate fi acceptabilă pentru o mașină de 80000 EUR, dar foarte mare pentru una de 7000 EUR. Din acest motiv, verdictul final folosește și un prag procentual configurabil de utilizator.
 
-\section{Web scraping și considerații etice}
+\subsection{Web scraping și considerații etice}
 \label{sec:background-scraping}
 
 Web scraping-ul permite colectarea automată a datelor publicate pe pagini web, însă ridică probleme tehnice, legale și etice. Krotov și Silva subliniază că cercetătorii trebuie să analizeze scopul colectării, tipul datelor, impactul asupra site-ului și riscurile de confidențialitate \cite{krotov2018webscraping}.
@@ -69,9 +73,9 @@ Web scraping-ul permite colectarea automată a datelor publicate pe pagini web, 
 
 Totuși, există o diferență importantă între un prototip local și un serviciu public. Dacă aplicația este publicată în cloud, fiecare predicție live poate genera o cerere server-side către site-ul anunțului. Acest lucru poate duce la limitări sau blocări, mai ales pentru \mobilede, unde mecanismele anti-automatizare sunt mai agresive.
 
-\section{Tehnologii folosite}
+\subsection{Context tehnologic și alegerea platformei de deployment}
 \label{sec:background-tech}
 
 Implementarea folosește Python și scikit-learn pentru pipeline-ul ML. scikit-learn este o bibliotecă standard pentru învățare automată în Python, cu implementări mature pentru regresie, preprocesare și evaluare \cite{pedregosa2011scikit}. Pentru aplicația web, backend-ul este construit cu FastAPI, un framework modern bazat pe tipuri Python și OpenAPI \cite{fastapi_docs}. Pentru cazurile în care este necesară interacțiunea cu pagini dinamice, proiectul folosește Playwright, care oferă automatizare de browser pentru Python \cite{playwright_docs}.
 
-Pentru deployment a fost pregătită o configurație Render, deoarece serviciile web Render pot porni aplicații Python care se leagă la portul furnizat prin variabila de mediu \texttt{PORT} \cite{render_docs}. Template-ul LaTeX al lucrării provine din repository-ul public \texttt{cs-pub-ro/templates} \cite{cs_pub_templates}.
+Render a fost ales pentru publicarea prototipului deoarece acceptă servicii definite prin Docker și conectate la un repository Git. Platforma permite configurarea separată a variabilelor de mediu și redeploy automat la actualizarea codului \cite{render_docs}. Pentru un proiect academic, aceste facilități reduc administrarea manuală a unui server și permit oferirea rapidă a unei adrese publice pentru demonstrații și teste de utilizabilitate. Folosirea containerului Docker păstrează aceleași versiuni Python, scikit-learn și Playwright între mediul local și cel din cloud, reducând riscul ca modelele serializate sau browserul automatizat să funcționeze diferit după deployment. Alegerea este una pragmatică pentru demonstrarea aplicației, nu o afirmație că Render ar fi soluția optimă pentru un sistem de producție la scară mare.

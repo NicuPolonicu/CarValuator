@@ -1,0 +1,143 @@
+\chapter{Implementarea aplicației}
+\label{chapter:implementation}
+
+Implementarea urmează modulele definite în Capitolul \ref{chapter:application}. Limbajul principal este Python, folosit pentru scraping, procesarea datelor, antrenare și backend. Interfața este realizată cu HTML, CSS și JavaScript fără framework frontend, pentru a păstra deployment-ul compact. Codul este organizat în pachetul \texttt{carvaluator\_scraper}, iar comenzile de reproducere sunt prezentate în Anexa \ref{appendix:commands}.
+
+\input{src/chapters/data_pipeline}
+
+\input{src/chapters/models}
+
+\section{Implementarea backend-ului}
+\label{sec:implementation-backend}
+
+Backend-ul pornește o aplicație FastAPI și montează folderul interfeței ca resurse statice. Modelele Pydantic validează automat tipurile și limitele parametrilor. De exemplu, toleranța trebuie să fie pozitivă și cel mult 100, iar metoda de agregare trebuie să fie una dintre opțiunile implementate.
+
+\labelindexref{Fragmentul}{lst:backend-predict} arată partea centrală a endpoint-ului de predicție. Ruta nu conține logica matematică, ci rezolvă căile configurate, verifică artefactele și apelează serviciul de inferență. Această separare face posibilă folosirea aceleiași funcții și din CLI.
+
+\begin{lstlisting}[language=Python,caption={Orchestrarea predicției în endpoint-ul FastAPI},label={lst:backend-predict}]
+@app.post("/predict")
+def predict(request: PredictRequest,
+            user: AuthUser = Depends(get_current_user)):
+    model_bundle = resolve_model_bundle_path()
+    similarity_csv = resolve_similarity_csv_path()
+
+    prediction = predict_from_link(
+        site=request.site,
+        url=request.url,
+        model_bundle_path=model_bundle,
+        threshold_percent=request.threshold_percent,
+        similarity_csv_path=similarity_csv,
+        ensemble_method=request.ensemble_method,
+    )
+
+    payload = prediction.to_dict()
+    record_prediction_history(user_id=user.id,
+                              prediction=payload)
+    return payload
+\end{lstlisting}
+
+Funcția \texttt{predict\_from\_link} validează domeniul și selectează fluxul \autovit\ sau \mobilede. Rezultatul este reprezentat printr-o structură care conține atât verdictul, cât și datele intermediare necesare interfeței. Excepțiile de validare devin răspunsuri 400, iar erorile sursei externe sunt transformate în mesaje controlate.
+
+\section{Implementarea frontend-ului}
+\label{sec:implementation-frontend}
+
+Frontend-ul folosește un formular HTML și o singură cerere asincronă către \texttt{/predict}. Înaintea trimiterii sunt validate domeniul linkului și toleranța. Pe durata cererii, butonul este dezactivat și este afișat overlay-ul de încărcare. Blocul \texttt{finally} este important deoarece închide animația atât la succes, cât și la eroare.
+
+\begin{lstlisting}[language=Java,caption={Cererea frontend către API și închiderea stării de încărcare},label={lst:frontend-fetch}]
+setLoading(true);
+try {
+  const response = await fetch("/predict", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      site,
+      url,
+      threshold_percent: thresholdPercent,
+      ensemble_method: ensembleMethod,
+      similar_limit: 4,
+    }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.detail);
+  }
+  renderResult(data);
+} catch (error) {
+  setMessage(error.message, "error");
+} finally {
+  setLoading(false);
+}
+\end{lstlisting}
+
+Rezultatul este construit din carduri: informațiile vehiculului, verdictul, predicțiile pe model, graficele și anunțurile similare. Estimarea finală ponderată și verdictul sunt afișate imediat, iar estimările individuale și graficele sunt plasate într-un element HTML \texttt{details}, închis implicit. Această afișare progresivă păstrează concluzia ușor de citit și permite extinderea detaliilor numai când sunt necesare.
+
+Frontend-ul tratează cele trei adrese \texttt{/}, \texttt{/istoric} și \texttt{/explicatii} ca pagini distincte, deși FastAPI servește același document HTML. JavaScript-ul activează secțiunea corespunzătoare adresei și marchează legătura curentă în bara de navigare. Pagina de explicații definește pe înțelesul utilizatorului metricile și regulile verdictului. Aceleași texte sunt disponibile printr-un element \texttt{dialog} deschis de butoanele de ajutor contextual.
+
+Nu este folosit HTML primit de la platformele externe; valorile sunt introduse în șabloane controlate de aplicație și sunt escapate înainte de afișare. Preferința vizuală este memorată în \texttt{localStorage}, iar layout-ul folosește grid și flexbox pentru adaptarea cardurilor la desktop și mobil.
+
+\labelindexref{Figura}{fig:gui-prediction} prezintă interfața după analiza unui anunț. În aceeași zonă sunt vizibile linkul, strategia de agregare, toleranța, confirmarea operației și cardul rezultatului. Fotografia ajută la verificarea identității anunțului, însă nu este folosită ca intrare pentru modelele curente.
+
+\fig[width=0.98\textwidth]{src/img/carvaluator/gui_prediction.png}{fig:gui-prediction}{Interfața web după finalizarea unei predicții}
+
+\section{Implementarea autentificării și securității}
+\label{sec:implementation-security}
+
+Parola este procesată cu PBKDF2-HMAC-SHA256. Pentru fiecare cont este generat un salt nou, iar baza păstrează algoritmul, numărul de iterații, saltul și hash-ul într-un șir serializat. Verificarea reconstruiește hash-ul și folosește \texttt{hmac.compare\_digest}, evitând comparațiile caracter cu caracter.
+
+\begin{lstlisting}[language=Python,caption={Principiul de derivare sigură a parolei},label={lst:password-hash}]
+salt = secrets.token_bytes(16)
+derived = hashlib.pbkdf2_hmac(
+    "sha256",
+    password.encode("utf-8"),
+    salt,
+    PASSWORD_ITERATIONS,
+)
+password_hash = (
+    f"pbkdf2_sha256${PASSWORD_ITERATIONS}$"
+    f"{salt.hex()}${derived.hex()}"
+)
+\end{lstlisting}
+
+Tokenul de sesiune este generat aleator și stocat în tabela \texttt{sessions}. Cookie-ul este HTTP-only, astfel încât JavaScript-ul paginii nu poate citi direct tokenul. Rutele de istoric primesc utilizatorul curent printr-o dependență FastAPI, iar comenzile SQL includ întotdeauna \texttt{user\_id}; un utilizator nu poate accesa sau șterge înregistrările altui cont. Endpoint-ul \texttt{GET /history/\{id\}} citește JSON-ul salvat și returnează raportul complet numai dacă perechea dintre identificator și utilizator este validă.
+
+Validarea URL-urilor acceptă numai domeniile prevăzute. Aplicația nu execută cod din paginile analizate și nu expune în interfață conținut HTML brut. Pentru deployment, cookie-ul este marcat secure, iar toate cererile publice sunt transportate prin HTTPS-ul oferit de platformă.
+
+\subsection{Limitarea ratei cererilor}
+
+Limitatorul folosește câte o coadă cu momentele cererilor pentru fiecare pereche formată din scop și cheie. La o cerere nouă sunt eliminate momentele mai vechi decât fereastra configurată. Dacă numărul rămas a atins limita, cererea este respinsă înainte de hashing-ul parolei, scraping sau inferență. Accesul la structuri este protejat cu un lock deoarece endpoint-urile sincrone FastAPI pot rula concurent în thread-uri diferite.
+
+\begin{lstlisting}[language=Python,caption={Verificarea unei limite cu fereastră glisantă},label={lst:rate-limit}]
+decision = limiter.check(
+    scope="predict",
+    key=str(user.id),
+    policy=settings.predict_policy,
+)
+if not decision.allowed:
+    raise HTTPException(
+        status_code=429,
+        detail="Prea multe cereri de analiza.",
+        headers={"Retry-After": str(decision.retry_after_seconds)},
+    )
+\end{lstlisting}
+
+Configurația implicită permite 60 de cereri pe minut pentru un IP, 10 încercări de login în 15 minute, 3 înregistrări pe oră și 5 predicții pe minut pentru fiecare cont. Antetele \texttt{X-RateLimit-Limit}, \texttt{X-RateLimit-Remaining} și \texttt{Retry-After} fac comportamentul observabil. Ruta \texttt{/health} expune valorile active, fără a expune contoarele sau identitatea utilizatorilor.
+
+\section{Implementarea similarității}
+\label{sec:implementation-similarity}
+
+Motorul de similaritate pornește de la aceeași reprezentare normalizată ca modelele. Sunt favorizate aceeași marcă și același model, apoi se calculează distanțe pentru an, kilometraj, putere și capacitate cilindrică. Combustibilul și transmisia adaugă bonusuri atunci când coincid.
+
+Prețurile anunțurilor similare nu modifică predicția finală. Această decizie evită dublarea informației, deoarece modelele au fost deja antrenate pe aceleași tipuri de exemple. Lista are rol explicativ și de navigare, iar scorul său este separat de ponderile ensemble-ului.
+
+Datasetul de similaritate este tratat ca un snapshot operațional distinct de setul de antrenare. Scriptul dedicat de actualizare colectează periodic anunțuri curente, le normalizează și actualizează fișierul stabil \texttt{similarity\_current.csv}. Separarea permite reducerea linkurilor expirate fără reantrenarea modelelor și fără modificarea estimărilor de preț.
+
+\section{Artefacte și deployment pe Render}
+\label{sec:implementation-deployment}
+
+Antrenarea locală produce bundle-ul complet, metricile CSV, raportul JSON și graficele PNG. Scriptul PowerShell pentru pregătirea artefactelor Render creează o variantă redusă pentru cloud și copiază datasetul de similaritate. Fișierul \texttt{render.yaml} declară serviciul Docker, iar \texttt{Dockerfile} instalează Python 3.11, dependențele fixate și Chromium.
+
+Fixarea versiunilor este necesară deoarece obiectele joblib folosesc clase interne din scikit-learn. Un model serializat cu versiunea 1.8.0 poate eșua la încărcare într-un runtime diferit. Containerul elimină această diferență și rezolvă și dependența Playwright de un browser instalat.
+
+Render rulează aceeași aplicație, dar cu un bundle redus pentru limita de memorie a planului gratuit. Datasetul de similaritate este copiat separat în subdirectorul \texttt{datasets} al folderului \texttt{deploy\_artifacts}, sub numele \texttt{similarity\_current.csv}. Un refresh efectuat în folderul local \texttt{data} nu afectează automat site-ul public; artefactul trebuie regenerat, publicat în Git și urmat de redeploy. Accesul live la \mobilede\ rămâne dependent de politica platformei față de IP-urile de cloud; de aceea, lookup-ul în snapshot-ul livrat precedă scraping-ul live.

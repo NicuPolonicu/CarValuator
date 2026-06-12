@@ -1,25 +1,26 @@
 \babel@toc {romanian}{}\relax 
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {1.1}{\ignorespaces Fluxul general al proiectului CarValuator }}{2}{figure.caption.8}%
+\contentsline {figure}{\numberline {1.1}{\ignorespaces Fluxul general al proiectului CarValuator }}{2}{figure.caption.5}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
+\contentsline {figure}{\numberline {4.1}{\ignorespaces Arhitectura modulară a sistemului CarValuator }}{9}{figure.caption.7}%
+\contentsline {figure}{\numberline {4.2}{\ignorespaces Diagramă UML de secvență pentru analiza unui anunț }}{10}{figure.caption.8}%
+\contentsline {figure}{\numberline {4.3}{\ignorespaces Matricea funcționalităților în funcție de răspândirea și frecvența utilizării }}{11}{figure.caption.10}%
+\contentsline {figure}{\numberline {4.4}{\ignorespaces Schema relațională pentru utilizatori, sesiuni și istoricul predicțiilor }}{12}{figure.caption.11}%
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {5.1}{\ignorespaces Componența setului de date după sursă }}{11}{figure.caption.12}%
-\contentsline {figure}{\numberline {5.2}{\ignorespaces Distribuția prețurilor în setul de date }}{14}{figure.caption.15}%
-\contentsline {figure}{\numberline {5.3}{\ignorespaces Prețul în funcție de kilometraj }}{15}{figure.caption.16}%
-\contentsline {figure}{\numberline {5.4}{\ignorespaces Mediana prețului în funcție de anul mașinii }}{15}{figure.caption.17}%
-\contentsline {figure}{\numberline {5.5}{\ignorespaces Cele mai frecvente mărci în setul de date }}{16}{figure.caption.18}%
+\contentsline {figure}{\numberline {5.1}{\ignorespaces Componența setului de date după sursă }}{13}{figure.caption.12}%
+\contentsline {figure}{\numberline {5.2}{\ignorespaces Distribuția prețurilor în setul de date }}{15}{figure.caption.15}%
+\contentsline {figure}{\numberline {5.3}{\ignorespaces Prețul în funcție de kilometraj }}{16}{figure.caption.16}%
+\contentsline {figure}{\numberline {5.4}{\ignorespaces Mediana prețului în funcție de anul mașinii }}{16}{figure.caption.17}%
+\contentsline {figure}{\numberline {5.5}{\ignorespaces Cele mai frecvente mărci în setul de date }}{17}{figure.caption.18}%
+\contentsline {figure}{\numberline {5.6}{\ignorespaces Caracteristici relevante după testele statistice }}{18}{figure.caption.20}%
+\contentsline {figure}{\numberline {5.7}{\ignorespaces Interfața web după finalizarea unei predicții }}{21}{figure.caption.29}%
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {6.1}{\ignorespaces Caracteristici relevante după testele statistice }}{18}{figure.caption.20}%
-\addvspace {10\p@ }
-\contentsline {figure}{\numberline {7.1}{\ignorespaces Arhitectura sistemului CarValuator }}{21}{figure.caption.23}%
-\addvspace {10\p@ }
-\addvspace {10\p@ }
-\contentsline {figure}{\numberline {9.1}{\ignorespaces Comparație de performanță între modele }}{28}{figure.caption.26}%
-\contentsline {figure}{\numberline {9.2}{\ignorespaces MAE și \(R^2\) pentru modelele evaluate }}{28}{figure.caption.27}%
-\contentsline {figure}{\numberline {9.3}{\ignorespaces Preț real față de preț estimat }}{29}{figure.caption.28}%
-\contentsline {figure}{\numberline {9.4}{\ignorespaces Analiza reziduurilor pentru modelul ales }}{30}{figure.caption.29}%
-\contentsline {figure}{\numberline {9.5}{\ignorespaces Matrice de corelații pentru caracteristici numerice }}{31}{figure.caption.30}%
+\contentsline {figure}{\numberline {6.1}{\ignorespaces Comparație de performanță între modele }}{26}{figure.caption.31}%
+\contentsline {figure}{\numberline {6.2}{\ignorespaces MAE și \(R^2\) pentru modelele evaluate }}{27}{figure.caption.32}%
+\contentsline {figure}{\numberline {6.3}{\ignorespaces Preț real față de preț estimat }}{27}{figure.caption.33}%
+\contentsline {figure}{\numberline {6.4}{\ignorespaces Analiza reziduurilor pentru modelul ales }}{28}{figure.caption.34}%
+\contentsline {figure}{\numberline {6.5}{\ignorespaces Matrice de corelații pentru caracteristici numerice }}{28}{figure.caption.35}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }

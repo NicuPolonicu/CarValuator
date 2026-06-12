@@ -11,7 +11,7 @@ services:
       - key: CARVALUATOR_MODEL_BUNDLE
         value: deploy_artifacts/model_results/best_model.joblib
       - key: CARVALUATOR_SIMILARITY_CSV
-        value: deploy_artifacts/datasets/combined_reader_20260606.csv
+        value: deploy_artifacts/datasets/similarity_current.csv
       - key: CARVALUATOR_BROWSER_CHANNEL
         value: chromium
       - key: CARVALUATOR_AUTH_DB
@@ -20,3 +20,23 @@ services:
         value: "1"
       - key: CARVALUATOR_SESSION_DAYS
         value: "7"
+      - key: CARVALUATOR_TRUST_PROXY_HEADERS
+        value: "1"
+      - key: CARVALUATOR_RATE_LIMIT_ENABLED
+        value: "1"
+      - key: CARVALUATOR_RATE_LIMIT_GLOBAL_REQUESTS
+        value: "60"
+      - key: CARVALUATOR_RATE_LIMIT_GLOBAL_WINDOW_SECONDS
+        value: "60"
+      - key: CARVALUATOR_RATE_LIMIT_LOGIN_REQUESTS
+        value: "10"
+      - key: CARVALUATOR_RATE_LIMIT_LOGIN_WINDOW_SECONDS
+        value: "900"
+      - key: CARVALUATOR_RATE_LIMIT_REGISTER_REQUESTS
+        value: "3"
+      - key: CARVALUATOR_RATE_LIMIT_REGISTER_WINDOW_SECONDS
+        value: "3600"
+      - key: CARVALUATOR_RATE_LIMIT_PREDICT_REQUESTS
+        value: "5"
+      - key: CARVALUATOR_RATE_LIMIT_PREDICT_WINDOW_SECONDS
+        value: "60"

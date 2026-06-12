@@ -7,18 +7,12 @@ Reallocating 'name_of_file' (item size: 1) to 30 items.
 A level-1 auxiliary file: src/chapters/requirements.aux
 Reallocating 'name_of_file' (item size: 1) to 30 items.
 A level-1 auxiliary file: src/chapters/market_study.aux
-Reallocating 'name_of_file' (item size: 1) to 28 items.
-A level-1 auxiliary file: src/chapters/background.aux
-Reallocating 'name_of_file' (item size: 1) to 31 items.
-A level-1 auxiliary file: src/chapters/data_pipeline.aux
-Reallocating 'name_of_file' (item size: 1) to 24 items.
-A level-1 auxiliary file: src/chapters/models.aux
 Reallocating 'name_of_file' (item size: 1) to 29 items.
 A level-1 auxiliary file: src/chapters/application.aux
+Reallocating 'name_of_file' (item size: 1) to 32 items.
+A level-1 auxiliary file: src/chapters/implementation.aux
 Reallocating 'name_of_file' (item size: 1) to 30 items.
 A level-1 auxiliary file: src/chapters/case_studies.aux
-Reallocating 'name_of_file' (item size: 1) to 28 items.
-A level-1 auxiliary file: src/chapters/evaluation.aux
 Reallocating 'name_of_file' (item size: 1) to 29 items.
 A level-1 auxiliary file: src/chapters/conclusions.aux
 Reallocating 'name_of_file' (item size: 1) to 9 items.
@@ -27,7 +21,7 @@ The style file: plain.bst
 Database file #1: src/main.bib
 You've used 23 entries,
             2118 wiz_defined-function locations,
-            625 strings with 7623 characters,
+            623 strings with 7617 characters,
 and the built_in function-call counts, 6144 in all, are:
 = -- 580
 > -- 281

@@ -1,89 +1,105 @@
 \babel@toc {romanian}{}\relax 
-\contentsline {chapter}{Rezumat}{ii}{chapter*.3}%
+\contentsline {chapter}{Sinopsis / Abstract}{i}{Doc-Start}%
 \contentsline {chapter}{\numberline {1}Introducere}{1}{chapter.1}%
 \contentsline {section}{\numberline {1.1}Contextul problemei}{1}{section.1.1}%
 \contentsline {section}{\numberline {1.2}Motivația proiectului}{1}{section.1.2}%
 \contentsline {section}{\numberline {1.3}Obiectivele lucrării}{1}{section.1.3}%
 \contentsline {section}{\numberline {1.4}Metodologie generală}{2}{section.1.4}%
 \contentsline {section}{\numberline {1.5}Contribuții}{2}{section.1.5}%
-\contentsline {section}{\numberline {1.6}Structura lucrării}{3}{section.1.6}%
-\contentsline {chapter}{\numberline {2}Analiza și specificarea cerințelor}{4}{chapter.2}%
-\contentsline {section}{\numberline {2.1}Profilul utilizatorilor}{4}{section.2.1}%
-\contentsline {section}{\numberline {2.2}Nevoi identificate}{4}{section.2.2}%
-\contentsline {section}{\numberline {2.3}Cerințe funcționale}{5}{section.2.3}%
-\contentsline {section}{\numberline {2.4}Cerințe nefuncționale}{5}{section.2.4}%
-\contentsline {section}{\numberline {2.5}Criterii de acceptare}{5}{section.2.5}%
-\contentsline {chapter}{\numberline {3}Studiu de piață și abordări existente}{6}{chapter.3}%
-\contentsline {section}{\numberline {3.1}Evoluția pieței second-hand}{6}{section.3.1}%
-\contentsline {section}{\numberline {3.2}Autovit}{6}{section.3.2}%
-\contentsline {section}{\numberline {3.3}mobile.de}{6}{section.3.3}%
-\contentsline {section}{\numberline {3.4}Poziționarea soluției propuse}{7}{section.3.4}%
-\contentsline {section}{\numberline {3.5}Riscuri și limite ale comparației}{7}{section.3.5}%
-\contentsline {chapter}{\numberline {4}Fundamentare teoretică și lucrări conexe}{8}{chapter.4}%
-\contentsline {section}{\numberline {4.1}Evaluarea prețurilor ca problemă de regresie}{8}{section.4.1}%
-\contentsline {section}{\numberline {4.2}Modele folosite}{8}{section.4.2}%
-\contentsline {section}{\numberline {4.3}Transformarea logaritmică a prețului}{9}{section.4.3}%
-\contentsline {section}{\numberline {4.4}Selecția caracteristicilor}{9}{section.4.4}%
-\contentsline {section}{\numberline {4.5}Metrici de evaluare}{9}{section.4.5}%
-\contentsline {section}{\numberline {4.6}Web scraping și considerații etice}{9}{section.4.6}%
-\contentsline {section}{\numberline {4.7}Tehnologii folosite}{10}{section.4.7}%
-\contentsline {chapter}{\numberline {5}Colectarea și pregătirea datelor}{11}{chapter.5}%
-\contentsline {section}{\numberline {5.1}Sursele de date}{11}{section.5.1}%
-\contentsline {section}{\numberline {5.2}Scraping pentru Autovit}{11}{section.5.2}%
-\contentsline {section}{\numberline {5.3}Scraping pentru mobile.de}{12}{section.5.3}%
-\contentsline {section}{\numberline {5.4}Schema datelor brute}{13}{section.5.4}%
-\contentsline {section}{\numberline {5.5}Normalizare}{13}{section.5.5}%
-\contentsline {section}{\numberline {5.6}Deduplicare}{13}{section.5.6}%
-\contentsline {section}{\numberline {5.7}Analiza exploratorie}{14}{section.5.7}%
-\contentsline {section}{\numberline {5.8}Pregătirea pentru antrenare}{14}{section.5.8}%
-\contentsline {chapter}{\numberline {6}Modelare și selecția caracteristicilor}{17}{chapter.6}%
-\contentsline {section}{\numberline {6.1}Caracteristici derivate}{17}{section.6.1}%
-\contentsline {section}{\numberline {6.2}Selecția statistică}{17}{section.6.2}%
-\contentsline {section}{\numberline {6.3}Preprocesare}{18}{section.6.3}%
-\contentsline {section}{\numberline {6.4}Modele candidate}{18}{section.6.4}%
-\contentsline {section}{\numberline {6.5}Funcționarea modelelor folosite}{19}{section.6.5}%
-\contentsline {section}{\numberline {6.6}Antrenarea pe log-preț}{20}{section.6.6}%
-\contentsline {section}{\numberline {6.7}Predicția finală prin medie ponderată}{20}{section.6.7}%
-\contentsline {section}{\numberline {6.8}Verdictul}{20}{section.6.8}%
-\contentsline {chapter}{\numberline {7}Arhitectura aplicației}{21}{chapter.7}%
-\contentsline {section}{\numberline {7.1}Vedere de ansamblu}{21}{section.7.1}%
-\contentsline {section}{\numberline {7.2}Backend FastAPI}{22}{section.7.2}%
-\contentsline {section}{\numberline {7.3}Autentificare și istoric}{22}{section.7.3}%
-\contentsline {section}{\numberline {7.4}Fluxul unei predicții}{22}{section.7.4}%
-\contentsline {section}{\numberline {7.5}Interfața web}{22}{section.7.5}%
-\contentsline {section}{\numberline {7.6}Anunțuri similare}{23}{section.7.6}%
-\contentsline {section}{\numberline {7.7}Artefacte de model și grafice}{23}{section.7.7}%
-\contentsline {section}{\numberline {7.8}Configurare și deployment}{23}{section.7.8}%
-\contentsline {chapter}{\numberline {8}Studii de caz și validare funcțională}{24}{chapter.8}%
-\contentsline {section}{\numberline {8.1}Rolul studiilor de caz}{24}{section.8.1}%
-\contentsline {section}{\numberline {8.2}Scenariu Autovit cu mașină comună}{24}{section.8.2}%
-\contentsline {section}{\numberline {8.3}Scenariu Autovit cu mașină premium}{24}{section.8.3}%
-\contentsline {section}{\numberline {8.4}Scenariu mobile.de}{25}{section.8.4}%
-\contentsline {section}{\numberline {8.5}Scenariu de istoric pe cont}{25}{section.8.5}%
-\contentsline {section}{\numberline {8.6}Scenariu de deployment}{25}{section.8.6}%
-\contentsline {section}{\numberline {8.7}Validarea mesajelor de eroare}{25}{section.8.7}%
-\contentsline {section}{\numberline {8.8}Observații din testare}{26}{section.8.8}%
-\contentsline {section}{\numberline {8.9}Concluziile studiilor de caz}{26}{section.8.9}%
-\contentsline {chapter}{\numberline {9}Evaluare experimentală}{27}{chapter.9}%
-\contentsline {section}{\numberline {9.1}Configurația experimentului}{27}{section.9.1}%
-\contentsline {section}{\numberline {9.2}Rezultatele modelelor}{27}{section.9.2}%
-\contentsline {section}{\numberline {9.3}Analiza predicțiilor}{27}{section.9.3}%
-\contentsline {section}{\numberline {9.4}Corelații și interpretabilitate}{28}{section.9.4}%
-\contentsline {section}{\numberline {9.5}Testare prin aplicație}{28}{section.9.5}%
-\contentsline {section}{\numberline {9.6}Comparație cu indicatorii platformelor}{29}{section.9.6}%
-\contentsline {section}{\numberline {9.7}Calitatea setului de date}{29}{section.9.7}%
-\contentsline {section}{\numberline {9.8}Acuratețe și utilitate practică}{30}{section.9.8}%
-\contentsline {section}{\numberline {9.9}Reproductibilitate}{30}{section.9.9}%
-\contentsline {chapter}{\numberline {10}Dificultăți, limitări și concluzii}{32}{chapter.10}%
-\contentsline {section}{\numberline {10.1}Dificultăți întâlnite}{32}{section.10.1}%
-\contentsline {section}{\numberline {10.2}Limitări}{33}{section.10.2}%
-\contentsline {section}{\numberline {10.3}Concluzii}{33}{section.10.3}%
-\contentsline {section}{\numberline {10.4}Direcții viitoare}{33}{section.10.4}%
-\contentsline {section}{\numberline {10.5}Încheiere}{34}{section.10.5}%
-\contentsline {chapter}{\numberline {A}Comenzi utile pentru reproducerea experimentelor}{35}{appendix.A}%
-\contentsline {section}{\numberline {A.1}Pornirea mediului}{35}{section.A.1}%
-\contentsline {section}{\numberline {A.2}Colectarea datelor}{35}{section.A.2}%
-\contentsline {section}{\numberline {A.3}Pregătirea setului de date}{35}{section.A.3}%
-\contentsline {section}{\numberline {A.4}Antrenarea modelelor}{36}{section.A.4}%
-\contentsline {section}{\numberline {A.5}Pornirea aplicației}{36}{section.A.5}%
-\contentsline {section}{\numberline {A.6}Pregătirea pentru Render}{36}{section.A.6}%
+\contentsline {section}{\numberline {1.6}Structura lucrării}{2}{section.1.6}%
+\contentsline {chapter}{\numberline {2}Analiza și specificarea cerințelor}{3}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Profilul utilizatorilor}{3}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Nevoi identificate}{3}{section.2.2}%
+\contentsline {section}{\numberline {2.3}Cerințe funcționale}{3}{section.2.3}%
+\contentsline {section}{\numberline {2.4}Cerințe nefuncționale}{4}{section.2.4}%
+\contentsline {section}{\numberline {2.5}Criterii de acceptare}{4}{section.2.5}%
+\contentsline {chapter}{\numberline {3}Studiu de piață și fundamentare}{5}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Evoluția pieței second-hand}{5}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Autovit}{5}{section.3.2}%
+\contentsline {section}{\numberline {3.3}mobile.de}{5}{section.3.3}%
+\contentsline {section}{\numberline {3.4}Poziționarea soluției propuse}{5}{section.3.4}%
+\contentsline {section}{\numberline {3.5}Riscuri și limite ale comparației}{6}{section.3.5}%
+\contentsline {section}{\numberline {3.6}Fundamentare teoretică și lucrări conexe}{7}{section.3.6}%
+\contentsline {subsection}{\numberline {3.6.1}Evaluarea prețurilor ca problemă de regresie}{7}{subsection.3.6.1}%
+\contentsline {subsection}{\numberline {3.6.2}Modele folosite}{7}{subsection.3.6.2}%
+\contentsline {subsection}{\numberline {3.6.3}Transformarea logaritmică a prețului}{7}{subsection.3.6.3}%
+\contentsline {subsection}{\numberline {3.6.4}Selecția caracteristicilor}{7}{subsection.3.6.4}%
+\contentsline {subsection}{\numberline {3.6.5}Metrici de evaluare}{8}{subsection.3.6.5}%
+\contentsline {subsection}{\numberline {3.6.6}Web scraping și considerații etice}{8}{subsection.3.6.6}%
+\contentsline {subsection}{\numberline {3.6.7}Context tehnologic și alegerea platformei de deployment}{8}{subsection.3.6.7}%
+\contentsline {chapter}{\numberline {4}Proiectarea aplicației}{9}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Obiective de proiectare}{9}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Arhitectura modulară}{9}{section.4.2}%
+\contentsline {section}{\numberline {4.3}Cazuri de utilizare}{10}{section.4.3}%
+\contentsline {section}{\numberline {4.4}Fluxul de execuție al unei predicții}{10}{section.4.4}%
+\contentsline {section}{\numberline {4.5}Proiectarea API-ului}{10}{section.4.5}%
+\contentsline {section}{\numberline {4.6}Proiectarea navigării}{11}{section.4.6}%
+\contentsline {section}{\numberline {4.7}Proiectarea bazei de date}{11}{section.4.7}%
+\contentsline {section}{\numberline {4.8}Proiectarea pentru securitate și defecte}{12}{section.4.8}%
+\contentsline {section}{\numberline {4.9}Decizii de deployment}{12}{section.4.9}%
+\contentsline {chapter}{\numberline {5}Implementarea aplicației}{13}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Colectarea și pregătirea datelor}{13}{section.5.1}%
+\contentsline {subsection}{\numberline {5.1.1}Sursele de date}{13}{subsection.5.1.1}%
+\contentsline {subsection}{\numberline {5.1.2}Scraping pentru Autovit}{13}{subsection.5.1.2}%
+\contentsline {subsection}{\numberline {5.1.3}Scraping pentru mobile.de}{14}{subsection.5.1.3}%
+\contentsline {subsection}{\numberline {5.1.4}Schema datelor brute}{14}{subsection.5.1.4}%
+\contentsline {subsection}{\numberline {5.1.5}Normalizare}{14}{subsection.5.1.5}%
+\contentsline {subsection}{\numberline {5.1.6}Deduplicare}{15}{subsection.5.1.6}%
+\contentsline {subsection}{\numberline {5.1.7}Analiza exploratorie}{15}{subsection.5.1.7}%
+\contentsline {subsection}{\numberline {5.1.8}Pregătirea pentru antrenare}{17}{subsection.5.1.8}%
+\contentsline {section}{\numberline {5.2}Modelare și selecția caracteristicilor}{17}{section.5.2}%
+\contentsline {subsection}{\numberline {5.2.1}Caracteristici derivate}{17}{subsection.5.2.1}%
+\contentsline {subsection}{\numberline {5.2.2}Selecția statistică}{17}{subsection.5.2.2}%
+\contentsline {subsection}{\numberline {5.2.3}Preprocesare}{18}{subsection.5.2.3}%
+\contentsline {subsection}{\numberline {5.2.4}Modele candidate și motivarea alegerii}{18}{subsection.5.2.4}%
+\contentsline {subsubsection}{SVR cu kernel RBF}{19}{section*.22}%
+\contentsline {subsubsection}{Ridge Regression}{19}{section*.23}%
+\contentsline {subsubsection}{KNN cu ponderare după distanță}{19}{section*.24}%
+\contentsline {subsubsection}{Random Forest}{19}{section*.25}%
+\contentsline {subsubsection}{Extra Trees}{19}{section*.26}%
+\contentsline {subsubsection}{Gradient Boosting}{19}{section*.27}%
+\contentsline {subsubsection}{Voting Regressor}{19}{section*.28}%
+\contentsline {subsection}{\numberline {5.2.5}Antrenarea pe log-preț}{19}{subsection.5.2.5}%
+\contentsline {subsection}{\numberline {5.2.6}Predicția finală prin medie ponderată}{20}{subsection.5.2.6}%
+\contentsline {subsection}{\numberline {5.2.7}Verdictul}{20}{subsection.5.2.7}%
+\contentsline {section}{\numberline {5.3}Implementarea backend-ului}{20}{section.5.3}%
+\contentsline {section}{\numberline {5.4}Implementarea frontend-ului}{20}{section.5.4}%
+\contentsline {section}{\numberline {5.5}Implementarea autentificării și securității}{21}{section.5.5}%
+\contentsline {subsection}{\numberline {5.5.1}Limitarea ratei cererilor}{22}{subsection.5.5.1}%
+\contentsline {section}{\numberline {5.6}Implementarea similarității}{22}{section.5.6}%
+\contentsline {section}{\numberline {5.7}Artefacte și deployment pe Render}{22}{section.5.7}%
+\contentsline {chapter}{\numberline {6}Testarea aplicației și rezultate}{23}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Rolul studiilor de caz}{23}{section.6.1}%
+\contentsline {section}{\numberline {6.2}Scenariu Autovit cu mașină comună}{23}{section.6.2}%
+\contentsline {section}{\numberline {6.3}Scenariu Autovit cu mașină premium}{23}{section.6.3}%
+\contentsline {section}{\numberline {6.4}Scenariu mobile.de}{23}{section.6.4}%
+\contentsline {section}{\numberline {6.5}Scenariu de istoric pe cont}{24}{section.6.5}%
+\contentsline {section}{\numberline {6.6}Scenariu de deployment}{24}{section.6.6}%
+\contentsline {section}{\numberline {6.7}Testarea limitării ratei}{24}{section.6.7}%
+\contentsline {section}{\numberline {6.8}Validarea mesajelor de eroare}{24}{section.6.8}%
+\contentsline {section}{\numberline {6.9}Observații din testare}{24}{section.6.9}%
+\contentsline {section}{\numberline {6.10}Concluziile studiilor de caz}{24}{section.6.10}%
+\contentsline {section}{\numberline {6.11}Evaluare experimentală}{26}{section.6.11}%
+\contentsline {subsection}{\numberline {6.11.1}Configurația experimentului}{26}{subsection.6.11.1}%
+\contentsline {subsection}{\numberline {6.11.2}Rezultatele modelelor}{26}{subsection.6.11.2}%
+\contentsline {subsection}{\numberline {6.11.3}Analiza predicțiilor}{27}{subsection.6.11.3}%
+\contentsline {subsection}{\numberline {6.11.4}Corelații și interpretabilitate}{28}{subsection.6.11.4}%
+\contentsline {subsection}{\numberline {6.11.5}Testare prin aplicație}{29}{subsection.6.11.5}%
+\contentsline {subsection}{\numberline {6.11.6}Comparație cu indicatorii platformelor}{29}{subsection.6.11.6}%
+\contentsline {subsection}{\numberline {6.11.7}Calitatea setului de date}{29}{subsection.6.11.7}%
+\contentsline {subsection}{\numberline {6.11.8}Acuratețe și utilitate practică}{29}{subsection.6.11.8}%
+\contentsline {subsection}{\numberline {6.11.9}Reproductibilitate}{29}{subsection.6.11.9}%
+\contentsline {chapter}{\numberline {7}Concluzii și direcții viitoare}{30}{chapter.7}%
+\contentsline {section}{\numberline {7.1}Dificultăți întâlnite}{30}{section.7.1}%
+\contentsline {section}{\numberline {7.2}Limitări}{30}{section.7.2}%
+\contentsline {section}{\numberline {7.3}Concluzii}{31}{section.7.3}%
+\contentsline {section}{\numberline {7.4}Direcții viitoare}{31}{section.7.4}%
+\contentsline {section}{\numberline {7.5}Încheiere}{31}{section.7.5}%
+\contentsline {chapter}{\numberline {A}Comenzi utile pentru reproducerea experimentelor}{32}{appendix.A}%
+\contentsline {section}{\numberline {A.1}Pornirea mediului}{32}{section.A.1}%
+\contentsline {section}{\numberline {A.2}Colectarea datelor}{32}{section.A.2}%
+\contentsline {section}{\numberline {A.3}Pregătirea setului de date}{32}{section.A.3}%
+\contentsline {section}{\numberline {A.4}Antrenarea modelelor}{33}{section.A.4}%
+\contentsline {section}{\numberline {A.5}Pornirea aplicației}{33}{section.A.5}%
+\contentsline {section}{\numberline {A.6}Reîmprospătarea sugestiilor similare}{33}{section.A.6}%
+\contentsline {section}{\numberline {A.7}Pregătirea pentru Render}{33}{section.A.7}%

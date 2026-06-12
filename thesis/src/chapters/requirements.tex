@@ -31,50 +31,36 @@ A treia nevoie este explicabilitatea. Un simplu număr, de exemplu 12500 EUR, nu
 \section{Cerințe funcționale}
 \label{sec:req-functional}
 
-\begin{table}[htb]
-    \centering
-    \caption{Cerințe funcționale principale}
-    \label{tab:functional-requirements}
-    \begin{tabular}{p{2.5cm}p{9.2cm}}
-        \toprule
-        Cod & Cerință \\
-        \midrule
-        F1 & Aplicația permite crearea unui cont folosind email, username și parolă. \\
-        F2 & Utilizatorul autentificat poate introduce un link \autovit\ sau \mobilede. \\
-        F3 & Sistemul extrage automat datele relevante ale anunțului: titlu, preț, an, kilometraj, combustibil, putere, capacitate cilindrică și imagine, atunci când sunt disponibile. \\
-        F4 & Sistemul estimează prețul corect folosind mai multe modele de regresie antrenate offline. \\
-        F5 & Aplicația afișează verdictul: preț corect, preț prea mic sau preț prea mare. \\
-        F6 & Utilizatorul poate modifica toleranța procentuală folosită pentru verdict. \\
-        F7 & Utilizatorul poate alege metoda de combinare a predicțiilor modelelor. \\
-        F8 & Rezultatul include anunțuri similare din baza de date colectată. \\
-        F9 & Fiecare predicție reușită este salvată în istoricul contului. \\
-        F10 & Utilizatorul poate șterge o analiză individuală sau întregul istoric. \\
-        \bottomrule
-    \end{tabular}
-\end{table}
+\begin{itemize}
+    \item \textbf{Crearea și autentificarea contului.} Aplicația trebuie să permită crearea unui cont folosind email, username și parolă, urmată de autentificare. Contul este necesar pentru asocierea analizelor cu persoana care le-a efectuat și pentru păstrarea unui istoric separat.
+    \item \textbf{Introducerea linkului de anunț.} Utilizatorul autentificat trebuie să poată introduce un link \autovit\ sau \mobilede. Folosirea linkului, în locul completării manuale a unui formular tehnic lung, reduce timpul necesar unei verificări și riscul introducerii greșite a datelor.
+    \item \textbf{Extragerea automată a caracteristicilor.} Sistemul trebuie să extragă titlul, prețul, anul, kilometrajul, combustibilul, transmisia, puterea, capacitatea cilindrică și imaginea, atunci când sursa le publică. Aceste câmpuri sunt necesare atât pentru construirea vectorului de intrare al modelului, cât și pentru confirmarea vizuală că a fost analizat anunțul corect.
+    \item \textbf{Estimarea prețului prin modele multiple.} Sistemul trebuie să calculeze estimări cu mai multe modele de regresie antrenate offline. Cerința evită dependența de o singură familie de algoritmi și permite observarea acordului sau dezacordului dintre modele.
+    \item \textbf{Generarea verdictului.} Aplicația trebuie să transforme estimarea numerică într-un verdict ușor de interpretat: preț corect, preț suspect de mic sau preț prea mare. Verdictul răspunde direct întrebării formulate de utilizator și face rezultatul util chiar și pentru persoane fără experiență în machine learning.
+    \item \textbf{Configurarea toleranței.} Utilizatorul trebuie să poată modifica toleranța procentuală folosită la verdict. O marjă fixă nu este potrivită pentru toate bugetele și segmentele auto, deoarece o diferență de 10\% are altă semnificație pentru o mașină de 5000 EUR decât pentru una de 80000 EUR.
+    \item \textbf{Alegerea metodei de combinare.} Interfața trebuie să permită alegerea între ponderarea invers proporțională cu MAE și varianta care ține cont suplimentar de acordul dintre modele. Această opțiune face vizibilă decizia de agregare și permite compararea celor două strategii în aceeași aplicație.
+    \item \textbf{Afișarea anunțurilor similare.} Rezultatul trebuie să includă exemple apropiate din baza de date colectată. Acestea oferă un reper concret de piață și îl ajută pe utilizator să verifice intuitiv dacă estimarea este plauzibilă.
+    \item \textbf{Salvarea istoricului complet.} Fiecare predicție reușită trebuie salvată în istoricul contului împreună cu toleranța verdictului, metoda de agregare, estimările individuale, metricile și anunțurile similare. Cumpărarea unei mașini presupune de regulă compararea mai multor opțiuni, iar păstrarea raportului complet permite revenirea la contextul exact al deciziei fără recalculare.
+    \item \textbf{Administrarea istoricului.} Utilizatorul trebuie să poată șterge o analiză individuală sau întregul istoric. Cerința oferă control asupra datelor contului și evită aglomerarea interfeței după multe verificări.
+    \item \textbf{Explicații accesibile.} Interfața trebuie să ofere o pagină separată cu explicații simple pentru MAE, RMSE, \(R^2\), metoda de agregare, toleranță și similaritate. Butoanele de ajutor contextual trebuie să conducă utilizatorul către explicația relevantă fără a întrerupe fluxul principal.
+    \item \textbf{Afișarea progresivă a rezultatului.} Raportul trebuie să prezinte inițial verdictul și estimarea finală ponderată. Predicțiile individuale și graficele de performanță trebuie să poată fi extinse la cerere, deoarece utilizatorul obișnuit are nevoie mai întâi de concluzie, iar detaliile tehnice sunt utile în etapa de verificare.
+\end{itemize}
 
 \section{Cerințe nefuncționale}
 \label{sec:req-nonfunctional}
 
-\begin{table}[htb]
-    \centering
-    \caption{Cerințe nefuncționale}
-    \label{tab:nonfunctional-requirements}
-    \begin{tabular}{p{2.5cm}p{9.2cm}}
-        \toprule
-        Cod & Cerință \\
-        \midrule
-        NF1 & Interfața trebuie să fie în limba română și să fie ușor de folosit pe desktop și mobil. \\
-        NF2 & Sistemul trebuie să ofere feedback vizual în timpul analizării unui link, deoarece scraping-ul poate dura câteva secunde. \\
-        NF3 & Datele brute trebuie păstrate în format auditabil, astfel încât normalizarea și antrenarea să poată fi refăcute. \\
-        NF4 & Modelele și datasetul folosit pentru sugestii trebuie configurate prin variabile de mediu, pentru a permite deployment în cloud. \\
-        NF5 & Parolele nu trebuie salvate în clar, iar sesiunea utilizatorului trebuie gestionată prin cookie HTTP-only. \\
-        NF6 & Erorile de scraping trebuie tratate explicit, fără blocarea aplicației. \\
-        \bottomrule
-    \end{tabular}
-\end{table}
+\begin{itemize}
+    \item \textbf{Utilizabilitate și acces de pe mai multe ecrane.} Interfața trebuie să fie în limba română, să păstreze un flux simplu și să se adapteze la desktop și mobil. Majoritatea utilizatorilor nu sunt specialiști tehnici, iar o aplicație de evaluare trebuie să poată fi folosită fără documentație prealabilă.
+    \item \textbf{Feedback și timp de răspuns controlat.} Sistemul trebuie să ofere feedback vizual pe durata analizei și să încheie cererea cu rezultat sau eroare într-un interval limitat. Scraping-ul poate dura câteva secunde, dar animația nu trebuie să ruleze nelimitat atunci când platforma externă nu răspunde.
+    \item \textbf{Reproductibilitatea datelor.} Datele brute trebuie păstrate în JSONL, iar seturile normalizate și metricile în formate auditabile precum CSV și JSON. Această cerință permite refacerea normalizării, verificarea deduplicării și repetarea antrenării fără colectarea inutilă a acelorași pagini.
+    \item \textbf{Portabilitate între local și cloud.} Căile către modele, datasetul de similaritate și baza de date trebuie configurate prin variabile de mediu. Separarea configurației de cod permite rularea aceleiași aplicații pe calculatorul de dezvoltare și în containerul Docker publicat pe Render.
+    \item \textbf{Securitatea autentificării.} Parolele nu trebuie salvate în clar, tokenurile de sesiune trebuie generate aleator, iar cookie-ul de autentificare trebuie să fie HTTP-only și secure în mediul HTTPS. Motivația este limitarea efectelor unei expuneri accidentale a bazei și reducerea accesului JavaScript la credențialele de sesiune.
+    \item \textbf{Robustețe la erorile surselor externe.} Erorile de rețea, schimbările de structură HTML și blocările anti-bot trebuie tratate explicit. Aplicația trebuie să returneze un mesaj clar și să oprească starea de încărcare, deoarece disponibilitatea \autovit\ și \mobilede\ nu este controlată de sistem.
+    \item \textbf{Trasabilitatea modelelor.} Bundle-ul salvat trebuie să conțină lista caracteristicilor, pipeline-urile și metricile asociate modelelor. Cerința este importantă pentru a reproduce o estimare și pentru a evita încărcarea unui model cu versiuni incompatibile ale bibliotecilor.
+    \item \textbf{Limitarea ratei cererilor.} Endpoint-urile publice și operațiile costisitoare trebuie protejate împotriva unui număr excesiv de cereri. Autentificarea și înregistrarea sunt limitate după adresa IP, iar predicția după contul autentificat. Cerința reduce riscul încercărilor automate asupra parolelor, al creării abuzive de conturi și al consumării resurselor limitate ale serviciului Render.
+\end{itemize}
 
 \section{Criterii de acceptare}
 \label{sec:req-acceptance}
 
-Un flux este considerat funcțional dacă utilizatorul poate crea cont, se poate autentifica, poate analiza un link valid, poate vedea verdictul și poate regăsi analiza în istoric. Pentru partea de modelare, acceptarea nu se bazează pe o predicție perfectă pentru fiecare anunț, ci pe obținerea unor metrici rezonabile pe setul de test și pe un comportament coerent în studiile de caz. Pentru partea de deployment, acceptarea minimă este ca ruta \texttt{/health} să confirme existența modelului, datasetului de similaritate și graficelor principale.
+Un flux este considerat funcțional dacă utilizatorul poate crea cont, se poate autentifica, poate analiza un link valid, poate vedea verdictul și poate redeschide din istoric raportul complet cu aceleași setări și comparații. Termenii tehnici trebuie să poată fi consultați fără părăsirea fluxului de analiză, iar detaliile modelelor trebuie să rămână opționale. La depășirea unei limite de cereri, aplicația trebuie să răspundă controlat cu statusul HTTP 429 și să indice timpul minim de așteptare. Pentru partea de modelare, acceptarea nu se bazează pe o predicție perfectă pentru fiecare anunț, ci pe obținerea unor metrici rezonabile pe setul de test și pe un comportament coerent în studiile de caz. Pentru partea de deployment, acceptarea minimă este ca ruta \texttt{/health} să confirme existența modelului, datasetului de similaritate și graficelor principale.
