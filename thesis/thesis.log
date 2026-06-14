@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.6.5)  12 JUN 2026 21:19
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.6.5)  15 JUN 2026 01:29
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -30,6 +30,44 @@ File: size10.clo 2025/01/22 v1.4n Standard LaTeX file (size option)
 Package: inputenc 2024/02/08 v1.3d Input encoding file
 \inpenc@prehook=\toks17
 \inpenc@posthook=\toks18
+)
+(C:\Users\alecn\AppData\Local\Programs\MiKTeX\tex/latex/base\fontenc.sty
+Package: fontenc 2025/07/18 v2.1d Standard LaTeX package
+)
+(C:\Users\alecn\AppData\Local\Programs\MiKTeX\tex/latex/lm\lmodern.sty
+Package: lmodern 2015/05/01 v1.6.1 Latin Modern Fonts
+LaTeX Font Info:    Overwriting symbol font `operators' in version `normal'
+(Font)                  OT1/cmr/m/n --> OT1/lmr/m/n on input line 22.
+LaTeX Font Info:    Overwriting symbol font `letters' in version `normal'
+(Font)                  OML/cmm/m/it --> OML/lmm/m/it on input line 23.
+LaTeX Font Info:    Overwriting symbol font `symbols' in version `normal'
+(Font)                  OMS/cmsy/m/n --> OMS/lmsy/m/n on input line 24.
+LaTeX Font Info:    Overwriting symbol font `largesymbols' in version `normal'
+(Font)                  OMX/cmex/m/n --> OMX/lmex/m/n on input line 25.
+LaTeX Font Info:    Overwriting symbol font `operators' in version `bold'
+(Font)                  OT1/cmr/bx/n --> OT1/lmr/bx/n on input line 26.
+LaTeX Font Info:    Overwriting symbol font `letters' in version `bold'
+(Font)                  OML/cmm/b/it --> OML/lmm/b/it on input line 27.
+LaTeX Font Info:    Overwriting symbol font `symbols' in version `bold'
+(Font)                  OMS/cmsy/b/n --> OMS/lmsy/b/n on input line 28.
+LaTeX Font Info:    Overwriting symbol font `largesymbols' in version `bold'
+(Font)                  OMX/cmex/m/n --> OMX/lmex/m/n on input line 29.
+LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `normal'
+(Font)                  OT1/cmr/bx/n --> OT1/lmr/bx/n on input line 31.
+LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `normal'
+(Font)                  OT1/cmss/m/n --> OT1/lmss/m/n on input line 32.
+LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `normal'
+(Font)                  OT1/cmr/m/it --> OT1/lmr/m/it on input line 33.
+LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `normal'
+(Font)                  OT1/cmtt/m/n --> OT1/lmtt/m/n on input line 34.
+LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `bold'
+(Font)                  OT1/cmr/bx/n --> OT1/lmr/bx/n on input line 35.
+LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `bold'
+(Font)                  OT1/cmss/bx/n --> OT1/lmss/bx/n on input line 36.
+LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `bold'
+(Font)                  OT1/cmr/bx/it --> OT1/lmr/bx/it on input line 37.
+LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `bold'
+(Font)                  OT1/cmtt/m/n --> OT1/lmtt/m/n on input line 38.
 )
 (C:\Users\alecn\AppData\Local\Programs\MiKTeX\tex/generic/babel\babel.sty
 Package: babel 2025/12/11 v25.17 The multilingual framework for LuaLaTeX, pdfLa
@@ -74,10 +112,13 @@ Package babel Info: Importing font and identification data for romanian
 (C:\Users\alecn\AppData\Local\Programs\MiKTeX\tex/latex/babel-romanian\romanian
 .ldf
 Language: romanian 2021/04/04 v1.2m Romanian support from the babel system
-)) (C:\Users\alecn\AppData\Local\Programs\MiKTeX\tex/latex/base\makeidx.sty
+))
+(C:\Users\alecn\AppData\Local\Programs\MiKTeX\tex/generic/pdftex\glyphtounicode
+.tex) (C:\Users\alecn\AppData\Local\Programs\MiKTeX\tex/latex/base\makeidx.sty
 Package: makeidx 2021/10/04 v1.0m Standard LaTeX package
 ) (C:\Users\alecn\AppData\Local\Programs\MiKTeX\tex/latex/geometry\geometry.sty
 Package: geometry 2026/03/07 v6.0 Page Geometry
+
 (C:\Users\alecn\AppData\Local\Programs\MiKTeX\tex/latex/graphics\keyval.sty
 Package: keyval 2022/05/29 v1.15 key=value parser (DPC)
 \KV@toks@=\toks19
@@ -237,13 +278,13 @@ Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 2
 )
 \Hy@SectionHShift=\skip51
 )
-Package hyperref Info: Option `colorlinks' set `true' on input line 51.
+Package hyperref Info: Option `colorlinks' set `true' on input line 57.
 
 
 Package hyperref Warning: Option `bookmarks' has already been used,
-(hyperref)                setting the option has no effect on input line 51.
+(hyperref)                setting the option has no effect on input line 57.
 
-Package hyperref Info: Option `bookmarksnumbered' set `true' on input line 51.
+Package hyperref Info: Option `bookmarksnumbered' set `true' on input line 57.
 
 (C:\Users\alecn\AppData\Local\Programs\MiKTeX\tex/latex/underscore\underscore.s
 ty
@@ -373,7 +414,7 @@ Package tocbasic Info: setting babel extension for `nls' on input line 188.
 \@nomenclaturefile=\write3
 \openout3 = `thesis.nlo'.
 
-Package nomencl Info: Writing nomenclature file thesis.nlo on input line 90.
+Package nomencl Info: Writing nomenclature file thesis.nlo on input line 96.
 
 (C:\Users\alecn\AppData\Local\Programs\MiKTeX\tex/latex/bigfoot\perpage.sty
 Package: perpage 2014/10/25 2.0 Reset/sort counters per page
@@ -421,7 +462,12 @@ Package: longtable 2025-10-13 v4.24 Multi-page Table package (DPC)
 )
 (C:\Users\alecn\AppData\Local\Programs\MiKTeX\tex/latex/base\fontenc.sty
 Package: fontenc 2025/07/18 v2.1d Standard LaTeX package
-)
+LaTeX Font Info:    Trying to load font information for T1+lmr on input line 11
+6.
+
+(C:\Users\alecn\AppData\Local\Programs\MiKTeX\tex/latex/lm\t1lmr.fd
+File: t1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+))
 (C:\Users\alecn\AppData\Local\Programs\MiKTeX\tex/latex/psnfss\courier.sty
 Package: courier 2020/03/25 PSNFSS-v9.3 (WaS) 
 )
@@ -745,6 +791,36 @@ Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: subfig package v1.3 is loaded.
 Package caption Info: End \AtBeginDocument code.
  (src/global.tex) (template/titlepage.ro.tex
+LaTeX Font Info:    Trying to load font information for OT1+lmr on input line 4
+.
+
+(C:\Users\alecn\AppData\Local\Programs\MiKTeX\tex/latex/lm\ot1lmr.fd
+File: ot1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+)
+LaTeX Font Info:    Trying to load font information for OML+lmm on input line 4
+.
+
+(C:\Users\alecn\AppData\Local\Programs\MiKTeX\tex/latex/lm\omllmm.fd
+File: omllmm.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+)
+LaTeX Font Info:    Trying to load font information for OMS+lmsy on input line 
+4.
+
+(C:\Users\alecn\AppData\Local\Programs\MiKTeX\tex/latex/lm\omslmsy.fd
+File: omslmsy.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+)
+LaTeX Font Info:    Trying to load font information for OMX+lmex on input line 
+4.
+
+(C:\Users\alecn\AppData\Local\Programs\MiKTeX\tex/latex/lm\omxlmex.fd
+File: omxlmex.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+)
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <14.4> on input line 4.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <10> on input line 4.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <7> on input line 4.
 <src/img/branding/upb.png, id=391, 598.235pt x 598.235pt>
 File: src/img/branding/upb.png Graphic file (type png)
 <use src/img/branding/upb.png>
@@ -755,16 +831,25 @@ File: src/img/branding/cs.png Graphic file (type png)
 <use src/img/branding/cs.png>
 Package pdftex.def Info: src/img/branding/cs.png  used on input line 13.
 (pdftex.def)             Requested size: 103.96696pt x 45.9061pt.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <5> on input line 14.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <17.28> on input line 19.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <12> on input line 19.
  [1
 
-{C:/Users/alecn/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map} <./src/img/br
-anding/upb.png> <./src/img/branding/cs.png>]) (src/base/synopsis.tex
+{C:/Users/alecn/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}{C:/Users/alec
+n/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-ec.enc} <./src/img/brandi
+ng/upb.png> <./src/img/branding/cs.png>]) (src/base/synopsis.tex
 pdfTeX warning (ext4): destination with the same identifier (name{page.i}) has 
 been already used, duplicate ignored
 <to be read again> 
                    \relax 
 l.35 \clearpage
-                [1]) (template/contents.pages.tex (thesis.toc [2
+                [1{C:/Users/alecn/AppData/Local/Programs/MiKTeX/fonts/enc/dvips
+/lm/lm-mathit.enc}{C:/Users/alecn/AppData/Local/Programs/MiKTeX/fonts/enc/dvips
+/lm/lm-rm.enc}]) (template/contents.pages.tex (thesis.toc [2
 
 
 ] [3])
@@ -785,33 +870,38 @@ l.35 \clearpage
  [6
 
 ]) (thesis.nls
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <24.88> on input line 2.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <20.74> on input line 2.
+
 Underfull \hbox (badness 10000) detected at line 4
-[]\T1/cmr/m/n/10 API:[]
+[]\T1/lmr/m/n/10 API:[]
  []
 
 
 Underfull \hbox (badness 10000) detected at line 5
-[]\T1/cmr/m/n/10 CSV:[]
+[]\T1/lmr/m/n/10 CSV:[]
  []
 
 
 Underfull \hbox (badness 10000) detected at line 7
-[]\T1/cmr/m/n/10 KNN:[]
+[]\T1/lmr/m/n/10 KNN:[]
  []
 
 
 Underfull \hbox (badness 10000) detected at line 8
-[]\T1/cmr/m/n/10 MAE:[]
+[]\T1/lmr/m/n/10 MAE:[]
  []
 
 
 Underfull \hbox (badness 10000) detected at line 9
-[]\T1/cmr/m/n/10 ML:[]
+[]\T1/lmr/m/n/10 ML:[]
  []
 
 
 Underfull \hbox (badness 10000) detected at line 11
-[]\T1/cmr/m/n/10 SVR:[]
+[]\T1/lmr/m/n/10 SVR:[]
  []
 
 ) [7
@@ -824,14 +914,20 @@ Capitolul 1.
 [1
 
 
-] [2]
-<src/img/carvaluator/application_flow.png, id=612, 787.3415pt x 231.264pt>
+]
+LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 3
+7.
+ (C:\Users\alecn\AppData\Local\Programs\MiKTeX\tex/latex/lm\ts1lmr.fd
+File: ts1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+)
+[2{C:/Users/alecn/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-ts1.enc}]
+<src/img/carvaluator/application_flow.png, id=609, 787.3415pt x 231.264pt>
 File: src/img/carvaluator/application_flow.png Graphic file (type png)
 <use src/img/carvaluator/application_flow.png>
 Package pdftex.def Info: src/img/carvaluator/application_flow.png  used on inpu
 t line 58.
 (pdftex.def)             Requested size: 379.559pt x 111.48889pt.
- [3 <./src/img/carvaluator/application_flow.png>]) [4]
+[3 <./src/img/carvaluator/application_flow.png>]) [4]
 \openout2 = `src/chapters/requirements.aux'.
 
 
@@ -862,48 +958,54 @@ Capitolul 3.
 
 ]
 Underfull \hbox (badness 10000) in paragraph at lines 46--46
-[]\T1/cmr/m/n/10 Date in-terne mo-
+[]\T1/lmr/m/n/10 Date in-terne mo-
  []
 
 
-Underfull \hbox (badness 1314) in paragraph at lines 46--47
-[]\T1/cmr/m/n/10 Date pu-blice co-lec-
+Underfull \hbox (badness 1303) in paragraph at lines 46--47
+[]\T1/lmr/m/n/10 Date pu-blice co-lec-
  []
 
 
-Underfull \hbox (badness 4608) in paragraph at lines 47--48
-[]\T1/cmr/m/n/10 Linkuri Auto-vit []i
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 48--48
-[]\T1/cmr/m/n/10 Compara[]ie cu
+Underfull \hbox (badness 4913) in paragraph at lines 47--48
+[]\T1/lmr/m/n/10 Linkuri Auto-vit []i
  []
 
 
 Underfull \hbox (badness 10000) in paragraph at lines 48--48
-\T1/cmr/m/n/10 anun[]uri si-mi-lare
+[]\T1/lmr/m/n/10 Compara[]ie cu
  []
 
 
-Underfull \hbox (badness 4060) in paragraph at lines 48--49
-[]\T1/cmr/m/n/10 Modele ML an-tre-
+Underfull \hbox (badness 10000) in paragraph at lines 48--48
+\T1/lmr/m/n/10 anun[]uri si-mi-lare
+ []
+
+
+Underfull \hbox (badness 4036) in paragraph at lines 48--49
+[]\T1/lmr/m/n/10 Modele ML an-tre-
  []
 
 
 Underfull \hbox (badness 10000) in paragraph at lines 50--50
-[]\T1/cmr/m/n/10 Transparen[]  în
+[]\T1/lmr/m/n/10 Transparen[]  în
  []
 
 
 Underfull \hbox (badness 10000) in paragraph at lines 50--51
-\T1/cmr/m/n/10 me-die pon-de-rat ,
+\T1/lmr/m/n/10 me-die pon-de-rat ,
  []
 
-[10]) [11] (src/chapters/background.tex [12
+[10]) [11] (src/chapters/background.tex
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <8> on input line 6.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <6> on input line 6.
+ [12
 
 
-] [13]) [14] [15]
+] [13{C:/Users/alecn/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-mathsy
+.enc}]) [14] [15]
 \openout2 = `src/chapters/application.aux'.
 
 
@@ -913,28 +1015,28 @@ Capitolul 4.
 
 
 ]
-<src/img/carvaluator/system_architecture.png, id=727, 787.3415pt x 411.939pt>
+<src/img/carvaluator/system_architecture.png, id=723, 787.3415pt x 411.939pt>
 File: src/img/carvaluator/system_architecture.png Graphic file (type png)
 <use src/img/carvaluator/system_architecture.png>
 Package pdftex.def Info: src/img/carvaluator/system_architecture.png  used on i
 nput line 30.
 (pdftex.def)             Requested size: 396.06514pt x 207.22612pt.
  [17 <./src/img/carvaluator/system_architecture.png>]
-<src/img/carvaluator/execution_sequence.png, id=735, 1149.093pt x 628.749pt>
+<src/img/carvaluator/execution_sequence.png, id=731, 1149.093pt x 628.749pt>
 File: src/img/carvaluator/execution_sequence.png Graphic file (type png)
 <use src/img/carvaluator/execution_sequence.png>
 Package pdftex.def Info: src/img/carvaluator/execution_sequence.png  used on in
 put line 51.
 (pdftex.def)             Requested size: 404.3119pt x 221.2263pt.
  [18 <./src/img/carvaluator/execution_sequence.png>]
-<src/img/carvaluator/route_matrix.png, id=743, 931.8815pt x 607.068pt>
+<src/img/carvaluator/route_matrix.png, id=739, 931.8815pt x 607.068pt>
 File: src/img/carvaluator/route_matrix.png Graphic file (type png)
 <use src/img/carvaluator/route_matrix.png>
 Package pdftex.def Info: src/img/carvaluator/route_matrix.png  used on input li
 ne 90.
 (pdftex.def)             Requested size: 387.81207pt x 252.63252pt.
  [19]
-<src/img/carvaluator/database_schema.png, id=749, 1076.823pt x 628.749pt>
+<src/img/carvaluator/database_schema.png, id=745, 1076.823pt x 628.749pt>
 File: src/img/carvaluator/database_schema.png Graphic file (type png)
 <use src/img/carvaluator/database_schema.png>
 Package pdftex.def Info: src/img/carvaluator/database_schema.png  used on input
@@ -948,7 +1050,7 @@ chema.png>] [21]) [22]
 (src/chapters/implementation.tex
 Capitolul 5.
 (src/chapters/data_pipeline.tex
-<src/img/carvaluator/dataset_sources.png, id=770, 440.847pt x 296.307pt>
+<src/img/carvaluator/dataset_sources.png, id=766, 440.847pt x 296.307pt>
 File: src/img/carvaluator/dataset_sources.png Graphic file (type png)
 <use src/img/carvaluator/dataset_sources.png>
 Package pdftex.def Info: src/img/carvaluator/dataset_sources.png  used on input
@@ -959,38 +1061,47 @@ Package pdftex.def Info: src/img/carvaluator/dataset_sources.png  used on input
 
 
 
-] [24 <./src/img/carvaluator/dataset_sources.png>] [25]
+] [24 <./src/img/carvaluator/dataset_sources.png>]
+LaTeX Font Info:    Trying to load font information for T1+lmss on input line 6
+0.
+ (C:\Users\alecn\AppData\Local\Programs\MiKTeX\tex/latex/lm\t1lmss.fd
+File: t1lmss.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+)
+[25]
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <9> on input line 76.
+
 Underfull \hbox (badness 10000) in paragraph at lines 88--88
-[]\T1/pcr/m/n/9 power_-hp\T1/cmr/m/n/9 , \T1/pcr/m/n/9 engine_-
+[]\T1/pcr/m/n/9 power_-hp\T1/lmr/m/n/9 , \T1/pcr/m/n/9 engine_-
  []
 
 
 Underfull \hbox (badness 3229) in paragraph at lines 89--89
-[]\T1/pcr/m/n/9 seller_-type\T1/cmr/m/n/9 , \T1/pcr/m/n/9 location_-
+[]\T1/pcr/m/n/9 seller_-type\T1/lmr/m/n/9 , \T1/pcr/m/n/9 location_-
  []
 
 [26]
-<src/img/carvaluator/price_distribution.png, id=799, 527.571pt x 325.6165pt>
+<src/img/carvaluator/price_distribution.png, id=795, 527.571pt x 325.6165pt>
 File: src/img/carvaluator/price_distribution.png Graphic file (type png)
 <use src/img/carvaluator/price_distribution.png>
 Package pdftex.def Info: src/img/carvaluator/price_distribution.png  used on in
 put line 115.
 (pdftex.def)             Requested size: 321.80017pt x 198.61583pt.
-<src/img/carvaluator/price_vs_mileage.png, id=801, 527.9725pt x 340.0705pt>
+<src/img/carvaluator/price_vs_mileage.png, id=797, 527.9725pt x 340.0705pt>
 File: src/img/carvaluator/price_vs_mileage.png Graphic file (type png)
 <use src/img/carvaluator/price_vs_mileage.png>
 Package pdftex.def Info: src/img/carvaluator/price_vs_mileage.png  used on inpu
 t line 119.
 (pdftex.def)             Requested size: 338.30629pt x 217.90382pt.
  [27 <./src/img/carvaluator/price_distribution.png>]
-<src/img/carvaluator/median_price_by_year.png, id=808, 556.8805pt x 325.6165pt>
+<src/img/carvaluator/median_price_by_year.png, id=804, 556.8805pt x 325.6165pt>
 
 File: src/img/carvaluator/median_price_by_year.png Graphic file (type png)
 <use src/img/carvaluator/median_price_by_year.png>
 Package pdftex.def Info: src/img/carvaluator/median_price_by_year.png  used on 
 input line 123.
 (pdftex.def)             Requested size: 338.30629pt x 197.81093pt.
-<src/img/carvaluator/top_makes.png, id=810, 527.1695pt x 354.5245pt>
+<src/img/carvaluator/top_makes.png, id=806, 527.1695pt x 354.5245pt>
 File: src/img/carvaluator/top_makes.png Graphic file (type png)
 <use src/img/carvaluator/top_makes.png>
 Package pdftex.def Info: src/img/carvaluator/top_makes.png  used on input line 
@@ -999,7 +1110,7 @@ Package pdftex.def Info: src/img/carvaluator/top_makes.png  used on input line
  [28 <./src/img/carvaluator/price_vs_mileage.png> <./src/img/carvaluator/median
 _price_by_year.png>])
 (src/chapters/models.tex [29 <./src/img/carvaluator/top_makes.png>]
-<src/img/carvaluator/feature_significance_top.png, id=824, 556.0775pt x 368.978
+<src/img/carvaluator/feature_significance_top.png, id=820, 556.0775pt x 368.978
 5pt>
 File: src/img/carvaluator/feature_significance_top.png Graphic file (type png)
 <use src/img/carvaluator/feature_significance_top.png>
@@ -1008,27 +1119,28 @@ Package pdftex.def Info: src/img/carvaluator/feature_significance_top.png  used
 (pdftex.def)             Requested size: 363.05919pt x 240.90854pt.
  [30]
 Underfull \hbox (badness 1616) in paragraph at lines 50--51
-[]\T1/pcr/m/n/10 make\T1/cmr/m/n/10 , \T1/pcr/m/n/10 model\T1/cmr/m/n/10 , \T1/
-pcr/m/n/10 make_-model\T1/cmr/m/n/10 , \T1/pcr/m/n/10 version\T1/cmr/m/n/10 , \
-T1/pcr/m/n/10 seller_-type\T1/cmr/m/n/10 ,
+[]\T1/pcr/m/n/10 make\T1/lmr/m/n/10 , \T1/pcr/m/n/10 model\T1/lmr/m/n/10 , \T1/
+pcr/m/n/10 make_-model\T1/lmr/m/n/10 , \T1/pcr/m/n/10 version\T1/lmr/m/n/10 , \
+T1/pcr/m/n/10 seller_-type\T1/lmr/m/n/10 ,
  []
 
 [31 <./src/img/carvaluator/feature_significance_top.png>] [32]
 (C:\Users\alecn\AppData\Local\Programs\MiKTeX\tex/latex/listings\lstlang1.sty
 File: lstlang1.sty 2025/11/14 1.11b listings language file
 )
-[33]) [34]
+[33]) [34{C:/Users/alecn/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-ma
+thex.enc}]
 (C:\Users\alecn\AppData\Local\Programs\MiKTeX\tex/latex/listings\lstlang1.sty
 File: lstlang1.sty 2025/11/14 1.11b listings language file
 )
-[35]
-<src/img/carvaluator/gui_prediction.png, id=910, 1268.74pt x 722.7pt>
+[35] [36]
+<src/img/carvaluator/gui_prediction.png, id=928, 1268.74pt x 722.7pt>
 File: src/img/carvaluator/gui_prediction.png Graphic file (type png)
 <use src/img/carvaluator/gui_prediction.png>
 Package pdftex.def Info: src/img/carvaluator/gui_prediction.png  used on input 
 line 82.
 (pdftex.def)             Requested size: 404.3119pt x 230.2983pt.
- [36] [37 <./src/img/carvaluator/gui_prediction.png>] [38]) [39]
+ [37 <./src/img/carvaluator/gui_prediction.png>] [38]) [39]
 \openout2 = `src/chapters/case_studies.aux'.
 
 
@@ -1040,7 +1152,7 @@ Capitolul 6.
 
 
 ] [41] [42] [43]) [44] (src/chapters/evaluation.tex
-<src/img/carvaluator/model_performance.png, id=993, 556.479pt x 325.215pt>
+<src/img/carvaluator/model_performance.png, id=989, 556.479pt x 325.215pt>
 File: src/img/carvaluator/model_performance.png Graphic file (type png)
 <use src/img/carvaluator/model_performance.png>
 Package pdftex.def Info: src/img/carvaluator/model_performance.png  used on inp
@@ -1050,14 +1162,13 @@ ut line 39.
 
 
 ]
-<src/img/carvaluator/model_mae_r2.png, id=998, 658.0585pt x 310.761pt>
+<src/img/carvaluator/model_mae_r2.png, id=994, 658.0585pt x 310.761pt>
 File: src/img/carvaluator/model_mae_r2.png Graphic file (type png)
 <use src/img/carvaluator/model_mae_r2.png>
 Package pdftex.def Info: src/img/carvaluator/model_mae_r2.png  used on input li
 ne 41.
 (pdftex.def)             Requested size: 363.05919pt x 171.4549pt.
-<src/img/carvaluator/actual_vs_predicted.png, id=1000, 411.5375pt x 397.8865pt>
-
+<src/img/carvaluator/actual_vs_predicted.png, id=996, 411.5375pt x 397.8865pt>
 File: src/img/carvaluator/actual_vs_predicted.png Graphic file (type png)
 <use src/img/carvaluator/actual_vs_predicted.png>
 Package pdftex.def Info: src/img/carvaluator/actual_vs_predicted.png  used on i
@@ -1065,7 +1176,7 @@ nput line 50.
 (pdftex.def)             Requested size: 338.30629pt x 327.08258pt.
  [46 <./src/img/carvaluator/model_performance.png> <./src/img/carvaluator/model
 _mae_r2.png>]
-<src/img/carvaluator/residual_analysis.png, id=1008, 670.9065pt x 296.7085pt>
+<src/img/carvaluator/residual_analysis.png, id=1004, 670.9065pt x 296.7085pt>
 File: src/img/carvaluator/residual_analysis.png Graphic file (type png)
 <use src/img/carvaluator/residual_analysis.png>
 Package pdftex.def Info: src/img/carvaluator/residual_analysis.png  used on inp
@@ -1074,15 +1185,15 @@ ut line 54.
 
 [47 <./src/img/carvaluator/actual_vs_predicted.png> <./src/img/carvaluator/resi
 dual_analysis.png>]
-<src/img/carvaluator/correlation_heatmap.png, id=1017, 493.845pt x 411.5375pt>
+<src/img/carvaluator/correlation_heatmap.png, id=1013, 493.845pt x 411.5375pt>
 File: src/img/carvaluator/correlation_heatmap.png Graphic file (type png)
 <use src/img/carvaluator/correlation_heatmap.png>
 Package pdftex.def Info: src/img/carvaluator/correlation_heatmap.png  used on i
 nput line 61.
 (pdftex.def)             Requested size: 338.30629pt x 281.92033pt.
  [48 <./src/img/carvaluator/correlation_heatmap.png>]
-Underfull \hbox (badness 4492) in paragraph at lines 89--89
-[]\T1/cmr/m/n/8 Volkswagen To-u-a-reg 3.0
+Underfull \hbox (badness 4454) in paragraph at lines 89--89
+[]\T1/lmr/m/n/8 Volkswagen To-u-a-reg 3.0
  []
 
 [49]) [50]
@@ -1092,7 +1203,7 @@ Underfull \hbox (badness 4492) in paragraph at lines 89--89
 Capitolul 7.
 
 Underfull \hbox (badness 10000) in paragraph at lines 24--24
-[]\T1/cmr/m/n/10 Supra-reprezentarea unor
+[]\T1/lmr/m/n/10 Supra-reprezentarea unor
  []
 
 [51
@@ -1111,8 +1222,8 @@ File: lstlang1.sty 2025/11/14 1.11b listings language file
 
 
 ] [56] [57])) (thesis.bbl [58]
-Underfull \hbox (badness 3568) in paragraph at lines 64--68
-[]\T1/cmr/m/n/10 mobile.de.  In-si-ghts api do-cu-men-ta-tion.  [][]$\T1/cmss/m
+Underfull \hbox (badness 3536) in paragraph at lines 64--68
+[]\T1/lmr/m/n/10 mobile.de.  In-si-ghts api do-cu-men-ta-tion.  [][]$\T1/lmss/m
 /n/10 https : / / services . sandbox . mobile . de / docs /
  []
 
@@ -1120,13 +1231,13 @@ Underfull \hbox (badness 3568) in paragraph at lines 64--68
 
 ]
 Underfull \hbox (badness 10000) in paragraph at lines 98--104
-[]\T1/cmr/m/n/10 Revista Biz.  Cre[]tere a pie[]ei auto în 2024. cele mai vân-d
+[]\T1/lmr/m/n/10 Revista Biz.  Cre[]tere a pie[]ei auto în 2024. cele mai vân-d
 ute
  []
 
 
 Underfull \hbox (badness 10000) in paragraph at lines 98--104
-\T1/cmr/m/n/10 m rci de ma[]ini noi []i se-cond hand.  [][]$\T1/cmss/m/n/10 htt
+\T1/lmr/m/n/10 m rci de ma[]ini noi []i se-cond hand.  [][]$\T1/lmss/m/n/10 htt
 ps : / / www . revistabiz . ro /
  []
 
@@ -1142,46 +1253,36 @@ Package rerunfilecheck Info: File `thesis.out' has not changed.
 (rerunfilecheck)             Checksum: 0AEFC794E8C8D31A1C8CF91E15FBDFA1;20620.
  ) 
 Here is how much of TeX's memory you used:
- 18118 strings out of 467871
- 307715 string characters out of 5418377
- 1063349 words of memory out of 5000000
- 46251 multiletter control sequences out of 15000+600000
- 655585 words of font info for 102 fonts, out of 8000000 for 9000
+ 18333 strings out of 467871
+ 313273 string characters out of 5418377
+ 1063964 words of memory out of 5000000
+ 46430 multiletter control sequences out of 15000+600000
+ 734593 words of font info for 103 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 125i,18n,147p,1137b,2116s stack positions out of 10000i,1000n,20000p,200000b,200000s
- <C:\Users\alecn\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm
-0800.pk> <C:\Users\alecn\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi60
-0\ecrm0900.pk> <C:\Users\alecn\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec
-/dpi600\ecss1000.pk> <C:\Users\alecn\AppData\Local\MiKTeX\fonts/pk/ljfour/jknap
-pen/ec/dpi600\ecti1000.pk> <C:\Users\alecn\AppData\Local\MiKTeX\fonts/pk/ljfour
-/jknappen/ec/dpi600\ecbx0600.pk> <C:\Users\alecn\AppData\Local\MiKTeX\fonts/pk/
-ljfour/jknappen/ec/dpi600\ecbx1200.pk> <C:\Users\alecn\AppData\Local\MiKTeX\fon
-ts/pk/ljfour/jknappen/ec/dpi600\tcrm1000.pk> <C:\Users\alecn\AppData\Local\MiKT
-eX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx2074.pk> <C:\Users\alecn\AppData\Loca
-l\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx0500.pk> <C:\Users\alecn\AppDat
-a\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx2488.pk> <C:\Users\alecn\
-AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm0500.pk> <C:\Users\
-alecn\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1000.pk> <C:\
-Users\alecn\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx0700.pk
-> <C:\Users\alecn\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1
-440.pk> <C:\Users\alecn\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600
-\ecbx1000.pk> <C:\Users\alecn\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/
-dpi600\ecbx1728.pk> <C:\Users\alecn\AppData\Local\MiKTeX\fonts/pk/ljfour/jknapp
-en/ec/dpi600\ecrm2488.pk> <C:\Users\alecn\AppData\Local\MiKTeX\fonts/pk/ljfour/
-jknappen/ec/dpi600\ecrm0700.pk> <C:\Users\alecn\AppData\Local\MiKTeX\fonts/pk/l
-jfour/jknappen/ec/dpi600\ecrm1440.pk><C:/Users/alecn/AppData/Local/Programs/MiK
-TeX/fonts/type1/public/amsfonts/cm/cmex10.pfb><C:/Users/alecn/AppData/Local/Pro
-grams/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Users/alecn/AppData/
-Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi7.pfb><C:/Users/alecn/
-AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/User
-s/alecn/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr7.pfb><
-C:/Users/alecn/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cms
-y10.pfb><C:/Users/alecn/AppData/Local/Programs/MiKTeX/fonts/type1/urw/courier/u
-crb8a.pfb><C:/Users/alecn/AppData/Local/Programs/MiKTeX/fonts/type1/urw/courier
-/ucrr8a.pfb>
-Output written on thesis.pdf (68 pages, 2159590 bytes).
+ 125i,18n,147p,1207b,2116s stack positions out of 10000i,1000n,20000p,200000b,200000s
+<C:/Users/alecn/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx10.pf
+b><C:/Users/alecn/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx12.pf
+b><C:/Users/alecn/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx5.pfb
+><C:/Users/alecn/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx6.pfb>
+<C:/Users/alecn/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx7.pfb><
+C:/Users/alecn/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmex10.pfb><
+C:/Users/alecn/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmmi10.pfb><
+C:/Users/alecn/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmmi7.pfb><C
+:/Users/alecn/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmr10.pfb><C:
+/Users/alecn/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmr12.pfb><C:/
+Users/alecn/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmr17.pfb><C:/U
+sers/alecn/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmr5.pfb><C:/Use
+rs/alecn/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmr7.pfb><C:/Users
+/alecn/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmr8.pfb><C:/Users/a
+lecn/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmr9.pfb><C:/Users/ale
+cn/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmri10.pfb><C:/Users/ale
+cn/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmss10.pfb><C:/Users/ale
+cn/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy10.pfb><C:/Users/ale
+cn/AppData/Local/Programs/MiKTeX/fonts/type1/urw/courier/ucrb8a.pfb><C:/Users/a
+lecn/AppData/Local/Programs/MiKTeX/fonts/type1/urw/courier/ucrr8a.pfb>
+Output written on thesis.pdf (68 pages, 2214498 bytes).
 PDF statistics:
- 1869 PDF objects out of 2073 (max. 8388607)
+ 1313 PDF objects out of 1440 (max. 8388607)
  358 named destinations out of 1000 (max. 500000)
  872 words of extra memory for PDF output out of 10000 (max. 10000000)
 

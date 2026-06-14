@@ -90,6 +90,13 @@ const helpContent = {
     title: "Acord intre modele",
     body: "<p>Arata cat de apropiata este estimarea unui model de centrul estimarilor celorlalte modele. Un acord mic reduce ponderea unei valori izolate.</p>",
   },
+  votingExcluded: {
+    title: "De ce Voting Ensemble este exclus?",
+    body: `
+      <p>Voting Ensemble combina deja predictiile mai multor modele de baza.</p>
+      <p>Daca ar primi inca o pondere in estimarea finala, aceleasi modele ar fi numarate de doua ori. De aceea ii afisam predictia si metricile, dar nu ii calculam Pondere sau Acord.</p>
+    `,
+  },
   similar: {
     title: "Masini similare",
     body: "<p>Sunt exemple apropiate din dataset dupa marca, model, an, kilometraj si specificatii. Ele ajuta la verificarea rezultatului, dar nu modifica direct pretul final.</p>",
@@ -686,7 +693,10 @@ function buildModelEstimatesMarkup(modelEstimates) {
 
   return `
     <div class="models-grid">
-      ${estimates.map((item) => `
+      ${estimates.map((item) => {
+        const excludedFromWeightedAverage =
+          item.excluded_from_weighted_average || item.model === "voting_ensemble";
+        return `
         <article class="model-card">
           <span class="card-eyebrow">Model</span>
           <h4>${escapeHtml(humanizeModelName(item.model))}</h4>
@@ -704,38 +714,34 @@ function buildModelEstimatesMarkup(modelEstimates) {
               <dt>R2 ${helpButton("r2", "Explica R2")}</dt>
               <dd>${formatMetric(item.r2)}</dd>
             </div>
-            ${item.ensemble_weight ? `
+            ${item.ensemble_weight != null ? `
               <div>
                 <dt>Pondere</dt>
                 <dd>${(Number(item.ensemble_weight) * 100).toFixed(1)}%</dd>
               </div>
+            ` : excludedFromWeightedAverage ? `
+              <div>
+                <dt>Pondere ${helpButton("votingExcluded", "Explica excluderea din estimarea finala")}</dt>
+                <dd>Exclus</dd>
+              </div>
             ` : ""}
-            ${item.agreement_weight ? `
+            ${item.agreement_weight != null ? `
               <div>
                 <dt>Acord ${helpButton("agreement", "Explica acordul intre modele")}</dt>
                 <dd>${(Number(item.agreement_weight) * 100).toFixed(0)}%</dd>
               </div>
+            ` : excludedFromWeightedAverage ? `
+              <div>
+                <dt>Acord</dt>
+                <dd>Nu se calculeaza</dd>
+              </div>
             ` : ""}
           </dl>
           ${item.is_best_model ? '<div class="model-best-badge">Cel mai bun model individual</div>' : ""}
+          ${excludedFromWeightedAverage ? '<div class="model-excluded-badge">Afisat pentru comparatie, neinclus in pretul final</div>' : ""}
         </article>
-      `).join("")}
-    </div>
-  `;
-}
-
-function buildPerformancePlotsMarkup() {
-  const cacheKey = Date.now();
-  return `
-    <div class="plots-grid">
-      <article class="plot-card">
-        <h4>Comparatie RMSE intre modele</h4>
-        <img src="/model-artifacts/model_performance.png?v=${cacheKey}" alt="Grafic comparativ RMSE pentru modele">
-      </article>
-      <article class="plot-card">
-        <h4>Pret real vs pret estimat</h4>
-        <img src="/model-artifacts/actual_vs_predicted.png?v=${cacheKey}" alt="Grafic pret real versus pret estimat">
-      </article>
+      `;
+      }).join("")}
     </div>
   `;
 }
@@ -746,7 +752,7 @@ function buildModelDisclosure(data) {
       <summary>
         <span>
           <strong>Vezi performanta fiecarui model</strong>
-          <small>Estimari individuale, MAE, RMSE, R2 si graficele de test</small>
+          <small>Estimari individuale, MAE, RMSE si R2</small>
         </span>
         <span class="disclosure-icon" aria-hidden="true">+</span>
       </summary>
@@ -754,16 +760,11 @@ function buildModelDisclosure(data) {
         <div class="section-title-row compact-title">
           <div>
             <p class="section-kicker">Comparatie modele</p>
-            <h3>De ce au contribuit diferit la rezultat?</h3>
+            <h3>Cum a contribuit fiecare model?</h3>
           </div>
           ${helpButton("weighted", "Explica estimarea finala ponderata")}
         </div>
         ${buildModelEstimatesMarkup(data.model_estimates || [])}
-        <div class="plots-heading">
-          <p class="section-kicker">Performanta la testare</p>
-          <h3>Grafice generate dupa antrenare</h3>
-        </div>
-        ${buildPerformancePlotsMarkup()}
       </div>
     </details>
   `;

@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CarValuator</title>
+  <link rel="icon" type="image/png" href="/static/app-icon.png">
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
@@ -31,7 +32,9 @@
   <div class="page-shell">
     <header class="topbar">
       <a class="brand" href="/">
-        <span class="brand-mark">CV</span>
+        <span class="brand-mark">
+          <img src="/static/app-icon.png" alt="" aria-hidden="true">
+        </span>
         <span class="brand-text">CarValuator</span>
       </a>
 
@@ -249,6 +252,29 @@
             <h2>Verdictul</h2>
             <p>Pret corect inseamna ca anuntul este in marja aleasa. Pret prea mare este peste limita superioara, iar pret suspect de mic este sub limita inferioara si merita verificari suplimentare.</p>
           </article>
+        </section>
+
+        <section id="performanta-modele" class="panel explanation-plots">
+          <div class="section-title-row">
+            <div>
+              <p class="section-kicker">Performanta modelelor</p>
+              <h2>Rezultatele obtinute dupa antrenare</h2>
+            </div>
+          </div>
+          <p class="explanation-plots-copy">
+            Aceste grafice descriu performanta globala pe setul de test. Ele nu se schimba de la un anunt la altul,
+            de aceea sunt prezentate aici, separat de raportul unei masini.
+          </p>
+          <div class="plots-grid">
+            <article class="plot-card">
+              <h4>Comparatie RMSE intre modele</h4>
+              <img src="/model-artifacts/model_performance.png" alt="Grafic comparativ RMSE pentru modele">
+            </article>
+            <article class="plot-card">
+              <h4>Pret real vs pret estimat</h4>
+              <img src="/model-artifacts/actual_vs_predicted.png" alt="Grafic pret real versus pret estimat">
+            </article>
+          </div>
         </section>
       </section>
     </main>

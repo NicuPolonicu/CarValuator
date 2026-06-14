@@ -126,15 +126,22 @@ a {
 }
 
 .brand-mark {
-  display: grid;
-  place-items: center;
+  display: block;
+  flex: 0 0 auto;
   width: 2.45rem;
   height: 2.45rem;
   border-radius: 13px;
-  background: linear-gradient(145deg, var(--accent), var(--accent-strong));
-  color: #071110;
-  font-size: 0.86rem;
-  letter-spacing: -0.04em;
+  overflow: hidden;
+  background: #080a0d;
+  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.18);
+}
+
+.brand-mark img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.32);
 }
 
 .main-nav {
@@ -879,6 +886,22 @@ a {
   font-weight: 800;
 }
 
+.model-excluded-badge {
+  display: inline-flex;
+  margin-top: 0.7rem;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.explanation-plots-copy {
+  margin: 0.55rem 0 0;
+  color: var(--muted);
+}
+
 .plots-heading {
   margin-top: 1.3rem;
 }
@@ -1145,6 +1168,19 @@ a {
 
 .term-card p {
   margin: 0.75rem 0 0;
+}
+
+.explanation-plots {
+  margin-top: 1rem;
+}
+
+.explanation-plots h2 {
+  margin-top: 0.2rem;
+  font-size: 2rem;
+}
+
+.explanation-plots .plots-grid {
+  margin-top: 1rem;
 }
 
 .loading-overlay {

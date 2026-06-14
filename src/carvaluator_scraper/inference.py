@@ -497,6 +497,11 @@ def compute_weighted_model_prediction(
     ensemble_method: str = DEFAULT_ENSEMBLE_METHOD,
 ) -> float:
     ensemble_method = validate_ensemble_method(ensemble_method)
+    for estimate in model_estimates:
+        if estimate.get("model") == "voting_ensemble":
+            estimate["excluded_from_weighted_average"] = True
+            estimate["exclusion_reason"] = "prevents_double_counting"
+
     candidates = [
         estimate
         for estimate in model_estimates

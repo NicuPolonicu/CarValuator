@@ -4,6 +4,8 @@ CarValuator is a thesis prototype for evaluating second-hand car ads. It accepts
 
 The current app supports Autovit and `mobile.de` links for prediction. Search scraping works for both sites; mobile.de uses its search JSON endpoint with browser-like headers and keeps a visible-browser fallback for cases where the endpoint is blocked.
 
+Pentru a înțelege proiectul de la zero, citește [CODE_GUIDE.md](CODE_GUIDE.md). Acesta explică arhitectura, ordinea recomandată de parcurgere și rolul fiecărui fișier cu cod.
+
 ## 1. Setup
 
 Create and activate the virtual environment:
@@ -231,7 +233,7 @@ The web app shows:
 - similar car ads from the scraped CSV
 - a separate explanations page and contextual help buttons for ML terms
 
-Account data and prediction history are stored locally in `data\carvaluator_users.db` by default. Each history record stores the complete prediction JSON, including the verdict tolerance, ensemble method, individual model estimates, metrics, plots, normalized listing and similar-car suggestions. Passwords are stored as salted PBKDF2 hashes, and logged-in sessions use an HTTP-only cookie. To move the auth database, set `CARVALUATOR_AUTH_DB`.
+Account data and prediction history are stored locally in `data\carvaluator_users.db` by default. Each history record stores the complete prediction JSON, including the verdict tolerance, ensemble method, individual model estimates, metrics, normalized listing and similar-car suggestions. Passwords are stored as salted PBKDF2 hashes, and logged-in sessions use an HTTP-only cookie. To move the auth database, set `CARVALUATOR_AUTH_DB`.
 
 The local startup script uses `data\similarity_current.csv` for similar-car suggestions. Refresh it periodically to reduce expired links:
 
@@ -397,6 +399,12 @@ data\model_results_xl_log\best_model.joblib
 If Autovit prediction fails for a specific link, the ad may have expired or Autovit may have changed/blocked the response. Try a fresh listing from the search page.
 
 ## 11. Thesis Notes
+
+Verifică automat diacriticele și normalizarea Unicode din sursele LaTeX:
+
+```powershell
+.\scripts\check-thesis-unicode.ps1
+```
 
 For the thesis write-up, the project can be described as:
 

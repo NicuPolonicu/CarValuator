@@ -21,7 +21,7 @@ The style file: plain.bst
 Database file #1: src/main.bib
 You've used 23 entries,
             2118 wiz_defined-function locations,
-            623 strings with 7605 characters,
+            623 strings with 7601 characters,
 and the built_in function-call counts, 6144 in all, are:
 = -- 580
 > -- 281

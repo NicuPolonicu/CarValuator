@@ -1,4 +1,14 @@
 This is makeindex, version 2.16 [MiKTeX 25.12].
-Scanning input file thesis_small.idx...done (0 entries accepted, 0 rejected).
-Nothing written in thesis_small.ind.
+Scanning style file C:/Users/alecn/AppData/Local/Programs/MiKTeX/makeindex/nomencl/nomencl.ist........
+** Input style error (file = C:/Users/alecn/AppData/Local/Programs/MiKTeX/makeindex/nomencl/nomencl.ist, line = 36):
+   -- Unknown specifier lethead_prefix.
+** Input style error (file = C:/Users/alecn/AppData/Local/Programs/MiKTeX/makeindex/nomencl/nomencl.ist, line = 37):
+   -- Unknown specifier lethead_suffix.
+** Input style error (file = C:/Users/alecn/AppData/Local/Programs/MiKTeX/makeindex/nomencl/nomencl.ist, line = 38):
+   -- Unknown specifier lethead_flag.
+....done (12 attributes redefined, 3 ignored).
+Scanning input file thesis_small.nlo....done (8 entries accepted, 0 rejected).
+Sorting entries....done (22 comparisons).
+Generating output file thesis_small.nls....done (13 lines written, 0 warnings).
+Output written in thesis_small.nls.
 Transcript written in thesis_small.ilg.

@@ -18,7 +18,13 @@
 % Romanian language support. The original template used utf8x/ucs, but modern
 % pdfLaTeX handles Romanian diacritics more reliably with standard utf8.
 \usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
 \usepackage[romanian]{babel}
+
+% Keep Romanian glyphs vectorial and searchable in the generated PDF.
+\input{glyphtounicode}
+\pdfgentounicode=1
 
 \usepackage{makeidx}
 

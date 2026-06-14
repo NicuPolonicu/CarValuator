@@ -29,9 +29,9 @@ O caracteristică importantă este \texttt{make\_model}, combinația dintre marc
 \subsection{Selecția statistică}
 \label{sec:models-selection}
 
-Selecția caracteristicilor are rolul de a reduce zgomotul și de a elimina coloanele slab reprezentate. Pentru caracteristicile numerice, pipeline-ul calculează corelația Pearson față de prețul logaritmic. Pentru caracteristicile categorice, prețul este împărțit în intervale, iar asocierea dintre categorie și intervalul de preț este testată prin chi-pătrat. Mărimea efectului este exprimată printr-o valoare de tip Cramér V.
+Selecția caracteristicilor are rolul de a reduce zgomotul și de a elimina coloanele slab reprezentate. Pentru caracteristicile numerice, pipeline-ul calculează corelația Pearson față de prețul logaritmic. Pentru caracteristicile categorice, prețul este împărțit în intervale, iar asocierea dintre categorie și intervalul de preț este testată prin chi-pătrat. Mărimea efectului este exprimată printr-o valoare de tip Cramer V.
 
-În configurația finală, pragurile au fost: \(\alpha = 0.05\), corelație Pearson minimă absolută \(0.05\) pentru numerice și Cramér V minim \(0.25\) pentru categorice. Aceste praguri sunt suficient de permisive pentru a păstra semnale slabe, dar elimină câmpuri cu puține valori sau cu asociere insuficientă.
+În configurația finală, pragurile au fost: \(\alpha = 0.05\), corelație Pearson minimă absolută \(0.05\) pentru numerice și Cramer V minim \(0.25\) pentru categorice. Aceste praguri sunt suficient de permisive pentru a păstra semnale slabe, dar elimină câmpuri cu puține valori sau cu asociere insuficientă.
 
 \labelindexref{Figura}{fig:feature-significance} prezintă cele mai relevante caracteristici. Printre cele păstrate se află versiunea, puterea, anul, vârsta vehiculului, combinația marcă-model, kilometrajul, capacitatea cilindrică, orașul și anul primei înmatriculări.
 
@@ -143,6 +143,8 @@ A doua strategie, \texttt{inverse\_mae\_with\_agreement}, adaugă o penalizare p
 \]
 
 Această a doua strategie a fost introdusă deoarece un model poate avea performanță bună global, dar poate produce o predicție foarte diferită pentru un anunț atipic. Penalizarea de acord nu elimină modelul, dar îi reduce influența în predicția finală.
+
+Voting Regressor este evaluat și afișat ca model individual, însă nu primește o pondere separată în această medie. El combină deja o parte dintre modelele de bază, iar includerea sa ar număra din nou aceleași predicții. În interfață, câmpurile de pondere și acord sunt marcate explicit ca neaplicabile pentru acest model.
 
 \subsection{Verdictul}
 \label{sec:models-verdict}

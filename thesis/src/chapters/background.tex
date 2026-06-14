@@ -53,7 +53,7 @@ Această transformare are două avantaje. În primul rând, comprimă intervalul
 
 Seturile de date obținute prin scraping conțin multe câmpuri, însă nu toate sunt utile pentru predicție. Unele câmpuri lipsesc frecvent, altele sunt prea specifice, iar altele au legătură slabă cu prețul. Pentru a evita introducerea de zgomot, pipeline-ul aplică o selecție de caracteristici înainte de modelare.
 
-Pentru variabile numerice se folosește corelația Pearson, o măsură clasică a asocierii liniare dintre două variabile \cite{pearson1895correlation}. Pentru variabile categorice, ținta numerică este discretizată în intervale, apoi se aplică un test de tip chi-pătrat. Mărimea efectului este aproximată prin Cramér V, o măsură potrivită pentru tabele de contingență \cite{cramer1946mathematical}.
+Pentru variabile numerice se folosește corelația Pearson, o măsură clasică a asocierii liniare dintre două variabile \cite{pearson1895correlation}. Pentru variabile categorice, ținta numerică este discretizată în intervale, apoi se aplică un test de tip chi-pătrat. Mărimea efectului este aproximată prin Cramer V, o măsură potrivită pentru tabele de contingență \cite{cramer1946mathematical}.
 
 Selecția nu este tratată ca adevăr absolut. De exemplu, transmisia și tipul de caroserie sunt caracteristici importante în lumea reală, dar în setul combinat disponibil ele apar foarte rar pentru \autovit. Dacă o coloană are puține valori completate, testul statistic poate decide eliminarea ei nu pentru că este irelevantă conceptual, ci pentru că datele curente nu permit estimarea efectului.
 
